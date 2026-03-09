@@ -35,8 +35,16 @@ load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
 
 from google.adk.agents import Agent
 from google.genai import types
+from google.adk.tools.google_search_agent_tool import GoogleSearchAgentTool, create_google_search_agent
 
 MODEL = os.getenv("MODEL", "gemini-2.5-flash")
+
+# ══════════════════════════════════════════════════════════════
+#  GOOGLE SEARCH GROUNDING
+# ══════════════════════════════════════════════════════════════
+search_tool = GoogleSearchAgentTool(
+    agent=create_google_search_agent(model=MODEL),
+)
 
 
 # ══════════════════════════════════════════════════════════════
@@ -368,19 +376,21 @@ root_agent = Agent(
         "- Search help articles (use search_help_articles tool)\n"
         "- Create support tickets (use create_support_ticket tool)\n"
         "- View system metrics (use get_metrics tool)\n"
+        "- Search the live internet for external questions (use google_search_agent tool)\n"
         "- Route to billing_specialist for billing/payment issues\n"
         "- Route to tech_specialist for technical/warranty issues\n\n"
         "RULES:\n"
         "- Greet the customer warmly.\n"
         "- For billing questions → delegate to billing_specialist.\n"
         "- For tech issues → delegate to tech_specialist.\n"
+        "- For external real-world questions, answer using google_search_agent.\n"
         "- For general questions, answer directly using help articles.\n"
         "- Always confirm before creating a ticket.\n"
         "- Summarize actions taken at the end.\n"
     ),
 
     # Level 3: Tools
-    tools=[lookup_order, search_help_articles, create_support_ticket, get_metrics],
+    tools=[lookup_order, search_help_articles, create_support_ticket, get_metrics, search_tool],
 
     # Level 4 & 5: Guardrails & Callbacks
     before_model_callback=input_guardrail,

@@ -16,14 +16,14 @@ We have provided automated scripts that will install UV, create the virtual envi
 **Windows:**
 
 ```powershell
-.\setup_adk.ps1
+.\scripts\setup_adk.ps1
 ```
 
 **macOS / Linux:**
 
 ```bash
-chmod +x setup_adk.sh
-./setup_adk.sh
+chmod +x scripts/setup_adk.sh
+./scripts/setup_adk.sh
 ```
 
 ### Option 2: Manual Setup
@@ -62,7 +62,7 @@ chmod +x setup_adk.sh
    We have separated the dependencies to keep the ADK environment clean and lightweight.
 
    ```powershell
-   uv pip install -r adk_requirements.txt
+   uv pip install -r requirements/adk.txt
    ```
 
 5. **Set up Environment Variables**
@@ -89,30 +89,14 @@ chmod +x setup_adk.sh
 
 ## Running the Agents
 
-### Native Base ADK UI (Web Interface)
+We provide multiple interfaces for testing and running the ADK agents.
 
-The ADK team provides a built-in React UI for testing basic agents.
-**To Start:**
-
-```powershell
-uv run --env-file .env adk web
-# This launches the server. Open the URL provided in the console (usually http://localhost:8080 or 8081).
-```
-
-**To Stop:**
-Press `Ctrl + C` in the terminal where it is running.
-
-### ADK CLI Mode (For Human-in-the-Loop tests)
-
-Because Python `input()` hangs a web server, agents like our `adk_level12_hitl` must be tested in the CLI.
-**To Start:**
-
-```powershell
-uv run --env-file .env adk adk_level12_hitl
-```
-
-**To Stop:**
-Type `exit` in the chat, or press `Ctrl + C`.
+| Interface Type                              | Start Command                                          | Description                                                           | Stop Command |
+| :------------------------------------------ | :----------------------------------------------------- | :-------------------------------------------------------------------- | :----------- |
+| **Streamlit Dashboard** <br>_(Recommended)_ | `uv run --env-file .env streamlit run adk_app.py`      | Modern chat dashboard testing all 10+ ADK learning levels natively.   | `Ctrl + C`   |
+| **FastAPI Backend**                         | `uv run --env-file .env uvicorn main:app --reload`     | Production REST API server for the root agent.                        | `Ctrl + C`   |
+| **Native ADK UI** <br>_(Web Interface)_     | `uv run --env-file .env adk web adk_labs`              | Google's built-in React UI for testing basic agents.                  | `Ctrl + C`   |
+| **CLI Mode** <br>_(For HITL)_               | `uv run --env-file .env adk adk_labs/adk_level12_hitl` | Native terminal mode (required for `input()` commands like Level 12). | Type `exit`  |
 
 ## Pushing to GitHub
 

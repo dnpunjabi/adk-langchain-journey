@@ -16,14 +16,14 @@ We have provided automated scripts that will install UV, create the virtual envi
 **Windows:**
 
 ```powershell
-.\setup_langchain.ps1
+.\scripts\setup_langchain.ps1
 ```
 
 **macOS / Linux:**
 
 ```bash
-chmod +x setup_langchain.sh
-./setup_langchain.sh
+chmod +x scripts/setup_langchain.sh
+./scripts/setup_langchain.sh
 ```
 
 ### Option 2: Manual Setup
@@ -62,7 +62,7 @@ chmod +x setup_langchain.sh
    We have separated these dependencies because LangChain requires significantly more heavy packages (Pydantic, LangSmith, SQL, etc.) than the base ADK.
 
    ```powershell
-   uv pip install -r lc_requirements.txt
+   uv pip install -r requirements/langchain.txt
    ```
 
 5. **Set up Environment Variables**
@@ -87,20 +87,14 @@ chmod +x setup_langchain.sh
    LANGCHAIN_PROJECT=ADK-Learning-Journey
    ```
 
-## Running the Application
+## Running the Applications
 
-### Streamlit UI
+We provide multiple interfaces for testing the LangChain learning levels.
 
-All 13 LangChain/LangGraph levels have been integrated into a beautiful, interactive Streamlit frontend.
-**To Start:**
-
-```powershell
-uv run --env-file .env streamlit run lc_app.py
-# This launches the application on http://localhost:8501
-```
-
-**To Stop:**
-Press `Ctrl + C` in the terminal where it is running.
+| Interface Type                              | Start Command                                      | Description                                                     | Stop Command |
+| :------------------------------------------ | :------------------------------------------------- | :-------------------------------------------------------------- | :----------- |
+| **Streamlit Dashboard** <br>_(Recommended)_ | `uv run --env-file .env streamlit run lc_app.py`   | Interactive frontend testing all 13 LangChain/LangGraph levels. | `Ctrl + C`   |
+| **FastAPI Backend**                         | `uv run --env-file .env uvicorn main:app --reload` | Production REST API server for external endpoints.              | `Ctrl + C`   |
 
 ## Pushing to GitHub
 

@@ -4,20 +4,20 @@ from dotenv import load_dotenv
 
 # Import the logic for the levels
 # We will refactor the existing scripts slightly to expose a run_level() function
-import lc_level1_basic
-import lc_level2_prompts
-import lc_level3_tools
-import lc_level4_guardrails
-import lc_level5_callbacks
-import lc_level6_multiagent
-import lc_level7_workflows
-import lc_level8_state
-import lc_level9_rag
-import lc_level10_production
-import lc_level11_langsmith
-import lc_level12_advanced
-import lc_level13_timetravel
-import adk_level12_comparison as adk_level12_advanced
+from langchain_labs import lc_level1_basic
+from langchain_labs import lc_level2_prompts
+from langchain_labs import lc_level3_tools
+from langchain_labs import lc_level4_guardrails
+from langchain_labs import lc_level5_callbacks
+from langchain_labs import lc_level6_multiagent
+from langchain_labs import lc_level7_workflows
+from langchain_labs import lc_level8_state
+from langchain_labs import lc_level9_rag
+from langchain_labs import lc_level10_production
+from langchain_labs import lc_level11_langsmith
+from langchain_labs import lc_level12_advanced
+from langchain_labs import lc_level13_timetravel
+from langchain_labs import adk_level12_comparison as adk_level12_advanced
 
 load_dotenv()
 

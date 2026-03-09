@@ -24,3 +24,7 @@ Thumbs.db
 
 # GCP Service Account Keys
 *.json
+
+# Generated debug and intermediate files
+*.md.resolved
+traceback.txt

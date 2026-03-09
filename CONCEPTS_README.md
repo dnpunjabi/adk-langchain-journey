@@ -1,63 +1,62 @@
 # Agentic AI & LLM Learning Track: Concept Mastery Guide 🧠
 
-This document serves as the master reference guide for all the Core AI Agent concepts we explored. For every feature, it explains the **Concept**, how it is implemented in the **Google ADK (Gen AI SDK)**, and how it is implemented in **LangChain/LangGraph**.
-
-## 🚀 Quick Feature Comparison
-
-| Feature          | Google ADK                          | LangChain / LangGraph                     |
-| :--------------- | :---------------------------------- | :---------------------------------------- |
-| **Inference**    | Direct `Agent.run()`                | `Runnable` interface / `.invoke()`        |
-| **Tool Calling** | Auto-execution via Python list      | Manual binding; requires Executor/Graph   |
-| **Multi-Agent**  | Native hierarchical `sub_agents`    | State-based Directed Acyclic Graph (DAG)  |
-| **Memory**       | In-memory sessions (stateless REST) | Persistent DB Checkpointers (Thread-safe) |
-| **Streaming**    | Message generators                  | Token-level generators & Event streams    |
-| **Control Flow** | Callback-based interrupts           | Interrupt nodes & state persistence       |
-| **Time Travel**  | Manual payload manipulation         | Native `update_state` & Forking           |
+Welcome to the master reference guide for our 13-Level Agentic AI Learning Track! This comprehensive document explains the core concepts taught in each level. It compares the architectural approaches and syntax of **Google ADK** (a minimal, function-calling framework) against **LangChain & LangGraph** (a massive ecosystem for stateful LLM orchestration).
 
 ---
 
+## 🚀 The 13-Level Journey Overview
+
+| Level  | Concept                   | ADK Implementation             | LangChain / LangGraph                |
+| :----- | :------------------------ | :----------------------------- | :----------------------------------- |
+| **01** | **Single Agent Basics**   | `Agent(model="gemini")`        | `ChatGoogleGenerativeAI`             |
+| **02** | **Prompt Engineering**    | `instruction=""`               | `ChatPromptTemplate`                 |
+| **03** | **Custom Tools**          | Python array `[func_name]`     | `@tool` & `bind_tools()`             |
+| **04** | **Guardrails & Safety**   | Callback validation            | LCEL `RunnableLambda`                |
+| **05** | **Monitoring/Callbacks**  | Native `after_model_callback`  | `BaseCallbackHandler`                |
+| **06** | **Multi-Agent Routing**   | Hierarchical `sub_agents`      | Supervisor `StateGraph`              |
+| **07** | **Workflows (Pipelines)** | `SequentialAgent`              | Parallel Node `StateGraph`           |
+| **08** | **State & Memory**        | Stateful memory lists          | `MemorySaver` Checkpointer           |
+| **09** | **RAG / Grounding**       | Google Search Tool integration | `InMemoryVectorStore`                |
+| **10** | **Production Patterns**   | Full combined agent            | `create_react_agent`                 |
+| **11** | **Observability**         | External log hooks             | LangSmith built-in tracing           |
+| **12** | **Streaming & HITL**      | Generators & `input()` hooks   | `interrupt_before=["tools"]`         |
+| **13** | **Time Travel (Forking)** | _Not natively supported_       | `get_state_history` & `update_state` |
+
 ---
 
-## 1. Basic Agent Initialization & Inference
+## Level 01: Single Agent Basics
 
-### The Concept
-
-At the core of any AI wrapper, the framework must convert your text into a payload the LLM API understands (often referred to as an "invoke" or "generate" call).
+**The Goal:** Connect to the LLM backend (Gemini via Vertex AI), send a text payload, and receive a response.
 
 ```mermaid
 sequenceDiagram
-    participant User
-    participant Script
-    participant SDK as Framework (ADK/LangChain)
-    participant LLM as Vertex AI / Gemini
+    participant App as Application
+    participant SDK as Framework
+    participant LLM as Vertex AI
 
-    User->>Script: Run query ("Hello")
-    Script->>SDK: Initialize & Call Invoke
-    SDK->>LLM: JSON POST Request (Payload)
-    LLM-->>SDK: JSON Response
-    SDK-->>Script: Parsed Response object
-    Script-->>User: Final Text
+    App->>SDK: "Explain Quantum Computing"
+    SDK->>LLM: JSON Payload {text: "Explain..."}
+    LLM-->>SDK: JSON Response {text: "Quantum computing is..."}
+    SDK-->>App: Object Response
 ```
 
 ### Google ADK
 
-The ADK keeps this extremely simple. It provides a stateful `Agent` class that handles the payload creation.
+The ADK abstracts the API payload into a simple `Agent` class wrapper. It hides message formatting behind an easy interface.
 
 ```python
 from google.adk.agents import Agent
-
-agent = Agent(name="my_agent", model="gemini-2.5-flash")
+agent = Agent(name="basic", model="gemini-2.5-flash")
 response = agent.run("Hello there!")
-print(response.content.parts[0].text)
+print(response)
 ```
 
 ### LangChain
 
-LangChain abstracts the LLM into a generalized `Runnable` interface. You use the `ChatGoogleGenerativeAI` class.
+LangChain abstracts the model into a standard `Runnable` interface using `invoke()`.
 
 ```python
 from langchain_google_genai import ChatGoogleGenerativeAI
-
 llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash")
 response = llm.invoke("Hello there!")
 print(response.content)
@@ -65,323 +64,418 @@ print(response.content)
 
 ---
 
-## 2. Prompt Engineering (System Instructions)
+## Level 02: Prompt Engineering
 
-### The Concept
+**The Goal:** Define the "persona" and boundaries of the agent using specific prompt types. Modern LLMs distinguish between different types of messages to structure reasoning and context correctly:
 
-Telling the LLM "who" it is and "what" rules it must follow. This is injected as a special `SystemMessage` at the very beginning of the API payload.
+1. **System / Developer Prompt:** The invisible, high-priority instructions that dictate the core behavior, tone, and logical constraints of the agent (e.g., "You are a helpful assistant. Never reveal secure information").
+2. **User / Human Prompt:** The actual query typed by the end-user (e.g., "What is the capital of France?").
+3. **AI / Assistant Prompt:** The historical replies generated by the model, re-injected into the context window so the LLM remembers what it just said.
 
 ### Google ADK
 
-The ADK exposes this via the `instruction` parameter on the Agent object.
+You define the System/Developer prompt directly on the agent object using the `instruction` key. The ADK abstracts message history away, so you generally only pass the instruction string and the user's input.
 
 ```python
 agent = Agent(
-    name="my_agent",
     model="gemini-2.5-flash",
-    instruction="You are a pirate. Always respond in pirate slang."
+    instruction="You are a funny pirate. Always respond like one." # System/Developer Prompt
 )
+
+agent.run("Tell me a joke!") # Automatically formatted as a User Prompt
 ```
 
 ### LangChain
 
-LangChain uses explicit `SystemMessage` objects or `ChatPromptTemplate` to construct the payload dynamically.
+LangChain utilizes explicit message classes (`SystemMessage`, `HumanMessage`, `AIMessage`) to construct the context window. It uses `ChatPromptTemplate` to structure these independently from the user's input, stringing them together via LCEL (LangChain Expression Language) pipelines.
 
 ```python
 from langchain_core.prompts import ChatPromptTemplate
 
 prompt = ChatPromptTemplate.from_messages([
-    ("system", "You are a pirate. Always respond in pirate slang."),
-    ("human", "{user_input}")
+    ("system", "You are a funny pirate. Always respond like one."), # Fixed System Message
+    ("human", "{user_input}")                                       # Dynamic User Message
 ])
+
 chain = prompt | llm
-chain.invoke({"user_input": "Hello"})
+chain.invoke({"user_input": "Hello!"})
 ```
 
 ---
 
-## 3. Tool Calling (Function Calling)
+## Level 03: Custom Tools (Function Calling)
 
-### The Concept
-
-Giving the LLM the ability to "interact" with the outside world (databases, APIs, math calculations). We provide the LLM a JSON schema of the tool. If the LLM decides it needs the tool, it halts text generation and returns a JSON payload requesting the tool execution. The framework runs the python function and feeds the result back to the LLM.
+**The Goal:** Give the LLM eyes and hands to interact with external APIs (like weather databases, ticketing systems, calculators).
 
 ```mermaid
 sequenceDiagram
     participant User
-    participant SDK as Framework Loop
+    participant Loop as Framework / SDK
     participant LLM as Gemini
     participant Tool as Python Function
 
-    User->>SDK: Query ("Weather in NY?")
-    SDK->>LLM: Send Input + Tool Schemas
-    LLM->>SDK: Tool Call Request (get_weather, city="NY")
-    Note over SDK: Loop Intercepts Call
-    SDK->>Tool: Execute get_weather("NY")
-    Tool-->>SDK: Return "Sunny, 25°C"
-    SDK->>LLM: Send Tool Result
-    LLM-->>SDK: Generate final natural language summary
-    SDK-->>User: "The weather in New York is sunny and 25°C."
+    User->>Loop: "Weather in NY?"
+    Loop->>LLM: Input + Shared Tool Schemas
+    LLM-->>Loop: Tool Call Request (get_weather, "NY")
+    Note over Loop: Stops generation to run code
+    Loop->>Tool: Execute get_weather("NY")
+    Tool-->>Loop: Results: "Sunny"
+    Loop->>LLM: Return Tool Results
+    LLM-->>User: "It's sunny in NY."
 ```
 
 ### Google ADK
 
-You pass a python function array directly to the Agent.
+The ADK has a native infinite loop. If an LLM requests a tool, the ADK automatically executes the Python function and feeds the result back without you writing the loop logic.
 
 ```python
-def get_weather(city: str) -> str:
-    return f"The weather in {city} is sunny."
+def weather(city: str) -> str:
+    """Returns the current weather for a given city."""
+    return "Sunny"
 
-agent = Agent(name="weather_bot", model="gemini-2.5-flash", tools=[get_weather])
-# The ADK automatically intercepts the function call, runs get_weather,
-# and returns the final answer seamlessly.
-agent.run("What is the weather in Tokyo?")
+agent = Agent(model="gemini-2.5-flash", tools=[weather])
+# Auto-executes the python function seamlessly
+agent.run("What's the weather in NY?")
 ```
 
 ### LangChain
 
-You use the `@tool` decorator to define schema, and `bind_tools` to attach it to the LLM.
+In base LangChain, tools must explicitly use the `@tool` decorator, must be bound to the LLM, and you must use LangGraph (or write a manual `while` loop) to handle the back-and-forth execution.
 
 ```python
 from langchain_core.tools import tool
 
 @tool
-def get_weather(city: str) -> str:
-    """Returns the weather for a city."""
-    return f"The weather in {city} is sunny."
+def weather(city: str) -> str:
+    """Returns the current weather for a given city."""
+    return "Sunny"
 
-llm_with_tools = llm.bind_tools([get_weather])
-# In LangChain, bind_tools does NOT automatically execute the tool.
-# You have to use AgentExecutor or LangGraph to actually run the loop.
+llm_with_tools = llm.bind_tools([weather])
+# Returns a tool call object! Does NOT automatically loop.
 ```
 
 ---
 
-## 4. Multi-Agent Systems & Handoffs
+## Level 04: Guardrails & Safety
 
-### The Concept
+**The Goal:** Validate inputs/outputs so that an Agent does not perform dangerous actions or say inappropriate things.
 
-Instead of one massive prompt, splitting up responsibilities among specialized agents. An orchestrator agent determines which sub-agent is best suited for the user's query and routes it.
+```mermaid
+flowchart TD
+    User([User Input]) --> InputGuard{Input Guardrail}
+    InputGuard -- "Toxic" --> Error[Reject Request]
+    InputGuard -- "Clean" --> LLM[LLM Processing]
+    LLM --> OutputGuard{Output Guardrail}
+    OutputGuard -- "Hallucination" --> Retry[Retry Strategy]
+    OutputGuard -- "Verified" --> Output([Final Response])
+```
 
-![Specialized AI agents working together](file:///C:/Users/dheer/.gemini/antigravity/brain/66fa6df7-3476-4612-b72e-f7a88a936ffb/multi_agent_collaboration_1773059482192.png)
-_Figure 1: Specialized agents (Researcher, Coder, Writer) collaborating on a complex task._
+### Google ADK
 
-### Routing Architectures
+ADK can utilize callback hooks (`before_tool_callback` or `before_model_callback`) or wrap functions with standard Python validation.
 
-| Pattern                       | Logic Flow                             | Complexity                   |
-| :---------------------------- | :------------------------------------- | :--------------------------- |
-| **Google ADK (Hierarchical)** | Root -> Sub-Agent (Linear)             | Simple, easy to scale depth  |
-| **LangGraph (Stateful)**      | State -> Node -> Edge -> Node (Cyclic) | High control, complex cycles |
+```python
+def check_pii(text: str):
+    if "SSN" in text:
+        raise ValueError("Cannot process Personally Identifiable Information.")
+```
+
+### LangChain
+
+LangChain utilizes LCEL `RunnableLambda` chains to pipe information through validation functions before it reaches the model, or Pydantic `OutputParsers` to ensure the structure is strictly typed.
+
+```python
+from langchain_core.runnables import RunnableLambda
+
+def input_guardrail(text: dict):
+    if "hack" in text["input"]:
+        raise ValueError("Malicious intent detected!")
+    return text
+
+safe_chain = RunnableLambda(input_guardrail) | prompt | llm
+```
+
+---
+
+## Level 05: Monitoring & Callbacks
+
+**The Goal:** Gain visibility into the "black box" of LLM execution by triggering events when a tool fires or an LLM finishes a generation chunk.
+
+### Google ADK
+
+ADK provides explicit hook properties directly on the Agent definition.
+
+```python
+def log_generation(response, **kwargs):
+    print(f"Tokens Used: {response.usage.total_tokens}")
+
+agent = Agent(
+    model="gemini-2.5-flash",
+    after_model_callback=log_generation
+)
+```
+
+### LangChain
+
+LangChain heavily utilizes the `BaseCallbackHandler` class, which fires across a massive variety of lifecycle events (nodes, tools, LLMs, retries, errors).
+
+```python
+from langchain_core.callbacks import BaseCallbackHandler
+
+class MyLogger(BaseCallbackHandler):
+    def on_llm_end(self, response, **kwargs):
+        print("Generation finished.")
+
+chain.invoke({"user_input": "Hi"}, config={"callbacks": [MyLogger()]})
+```
+
+---
+
+## Level 06: Multi-Agent Routing
+
+**The Goal:** Break down a massive prompt into specialized workers (e.g. Sales bot vs HR bot vs Tech Support bot).
 
 ```mermaid
 graph TD
-    subgraph ADK_Hierarchical
-        A[Router Agent] --> B[Math Agent]
-        A --> C[HR Agent]
-    end
-
-    subgraph LangGraph_Cyclic
-        D[Router Node] -- Edge --> E[Specialist Node]
-        E -- Edge --> D
-        E -- Finish --> F[End]
-    end
+    User((User)) --> Router[Router / Supervisor]
+    Router -- "I want to buy..." --> Sales[Sales Agent]
+    Router -- "Sick days?" --> HR[HR Agent]
+    Router -- "Broken screen" --> Tech[Tech Support]
+    Sales --> Output
+    HR --> Output
+    Tech --> Output
 ```
 
-### Google ADK
+### Google ADK (Hierarchical Trees)
 
-The ADK has native hierarchical routing. You define leaf agents, and attach them as `sub_agents` to a root router.
+The ADK supports native tree-based routing using `sub_agents`. A root agent intelligently routes questions to its leaf specific agents.
 
 ```python
-math_bot = Agent(name="math_expert", instruction="Solve math.")
-weather_bot = Agent(name="weather_expert", instruction="Give weather.")
+sales_agent = Agent(name="sales_bot", instruction="Sell things.")
+hr_agent = Agent(name="hr_bot", instruction="Manage PTO.")
 
-router_agent = Agent(
-    name="router",
-    sub_agents=[math_bot, weather_bot]
-)
-# ADK natively figures out which sub_agent handles the request and routes it.
+# The root agent decides which sub-agent is best suited for the query
+router = Agent(name="main_router", sub_agents=[sales_agent, hr_agent])
 ```
 
-### LangChain / LangGraph
+### LangGraph (Stateful DAG)
 
-LangGraph implements this as a Directed Acyclic Graph (DAG) state machine. Nodes are the agents, and Edges determine the routing.
+LangGraph treats agents as nodes in a mathematical graph. A Supervisor node decides the next edge to traverse.
 
 ```python
 from langgraph.graph import StateGraph
-from typing import TypedDict, Annotated
 
-class State(TypedDict):
-    messages: list
-    next_agent: str
-
-graph = StateGraph(State)
-graph.add_node("math_agent", run_math_bot)
-graph.add_node("weather_agent", run_weather_bot)
-graph.add_conditional_edges("router", route_function)
-# The graph structure defines exactly how state flows between agents.
+builder = StateGraph(State)
+builder.add_node("sales", sales_node)
+builder.add_node("hr", hr_node)
+builder.add_conditional_edges("supervisor", router_logic) # Logic determines routing
 ```
 
 ---
 
-## 5. Streaming
+## Level 07: Workflows & Pipelines
 
-### The Concept
+**The Goal:** Enforce a strict chronological pipeline. Ensure Step 1 completes entirely before Step 2 begins (e.g., Research -> Draft -> Edit -> Publish).
 
-Returning tokens to the user the millisecond they are generated by the LLM, rather than waiting for the entire response to finish (the ChatGPT typewriter effect).
+```mermaid
+journey
+    title Document Processing Pipeline
+    section Stage 1: Extraction
+      OCR Tool: 5: Agent
+    section Stage 2: Synthesis
+      Summarize: 3: Agent
+    section Stage 3: Output
+      Format JSON: 4: Agent
+```
 
 ### Google ADK
 
-Native support via the `send_message_stream` generator.
+ADK utilizes a dedicated `SequentialAgent` class designed to run agents chronologically in a linked chain.
 
 ```python
-chat = client.chats.create(model="gemini-2.5-flash")
-for chunk in chat.send_message_stream("Write a poem"):
-    print(chunk.text, end="", flush=True)
+from google.adk.agents import SequentialAgent
+pipeline = SequentialAgent(
+    agents=[research_agent, write_agent, review_agent]
+)
 ```
 
-### LangChain / LangGraph
+### LangGraph
 
-Supported natively using `.stream()` or `.astream_events()` directly from the LLM or graph object.
+LangGraph strings graph nodes together with direct, chronological edges and no conditionals.
 
 ```python
-for chunk in llm.stream("Write a poem"):
-    print(chunk.content, end="", flush=True)
-
-# Or to stream node-by-node in a complex agent:
-for event in graph.stream({"messages": [("user", "Hello")]}):
-    print(event)
+builder.add_edge("researcher", "writer")
+builder.add_edge("writer", "reviewer")
+builder.add_edge("reviewer", END)
 ```
 
 ---
 
-## 6. Memory & State Persistence
+## Level 08: State & Memory
 
-### The Concept
+**The Goal:** Maintain conversation history across isolated REST API calls. Because serverless environments (like Cloud Run) spin up and down, memory must be stored somewhere.
 
-Remembering the conversation history. Because REST API calls are stateless, the entire chat history must be bundled and sent to the LLM upon every new request.
-
-![Visual metaphor for AI memory](file:///C:/Users/dheer/.gemini/antigravity/brain/66fa6df7-3476-4612-b72e-f7a88a936ffb/agentic_memory_metaphor_1773059496814.png)
-_Figure 2: Understanding Short-term (Session) vs. Long-term (Persistent) Agent State._
-
-### Memory Comparison
-
-| Feature         | Session Memory (ADK)   | Persistent Checkpointers (LangGraph) |
-| :-------------- | :--------------------- | :----------------------------------- |
-| **Storage**     | RAM (Python Object)    | External Database (SQLite/Postgres)  |
-| **Resilience**  | Lost on Server Restart | Survives crashes and deployments     |
-| **Scalability** | Limited to single node | Horizontal scale via shared DB       |
-| **Control**     | manual `append`        | Automatic state snapshots per node   |
+| Feature        | Session Memory (ADK)       | Persistent Checkpointers (LangGraph) |
+| :------------- | :------------------------- | :----------------------------------- |
+| **Philosophy** | RAM (Python Object arrays) | External Database (SQLite/Postgres)  |
+| **Resilience** | Lost on Server Restart     | Survives crashes and deployments     |
 
 ### Google ADK
 
-The ADK uses local session objects (like `client.chats.create()`) which hold the history array in active memory. To persist across servers, it supports saving/loading JSON strings.
+History is maintained in runtime arrays managed by `InMemorySessionService`. (See `main.py`).
 
 ```python
-session = agent.get_session("session_id_123")
-session.run("Hello")
-# The context is preserved inside that session object as long as the script runs.
+from google.adk.sessions import InMemorySessionService
+service = InMemorySessionService()
+session = await service.create_session(app_name="app", user_id="1", session_id="abc")
+# Passes session object to the runner to append history
 ```
 
-### LangGraph (Production Memory)
+### LangGraph
 
-LangGraph utilizes "Checkpointers" (like `MemorySaver` or `AsyncSqliteSaver`). After **every single node execution**, the graph saves the exact mathematical state to a database.
+LangGraph uses rigorous database "Checkpointers" to save the exact mathematical state of the graph after _every single node transition_.
 
 ```python
 from langgraph.checkpoint.memory import MemorySaver
-
 memory = MemorySaver()
 app = create_react_agent(model=llm, checkpointer=memory)
-
-# State is perpetually saved to the thread_id
-app.invoke({"messages": [("user", "Hello")]}, config={"configurable": {"thread_id": "1"}})
+app.invoke({"messages": [HumanMessage("Hello")]}, config={"configurable": {"thread_id": "1"}})
 ```
 
 ---
 
-## 7. Human-in-the-Loop (Interrupts)
+## Level 09: Retrieval-Augmented Generation (RAG)
 
-### The Concept
+**The Goal:** Give the LLM access to private, proprietary information via vector databases.
 
-Pausing the execution of the application right before it runs a high-stakes tool (like a refund or email) to ask a human administrator for `Yes/No` approval.
+```mermaid
+flowchart LR
+    User --> Query[User Query]
+    Query --> Embed[Embedding Model]
+    Embed --> VectorDB[(Vector DB)]
+    VectorDB -- Relevant Chunks --> Context[Prompt Context]
+    Context --> LLM
+    LLM --> Answer
+```
+
+### Google ADK
+
+RAG is typically integrated via a Tool that queries Vertex AI Search or an explicit connection to Google Cloud's native Search Tools.
+
+```python
+def query_knowledge_base(query: str):
+    # Perform vector search logic here
+    return document_text
+
+agent = Agent(tools=[query_knowledge_base])
+```
+
+### LangChain
+
+LangChain possesses an enormous ecosystem of Vector Stores (`InMemoryVectorStore`, Pinecone, Qdrant). It provides built-in `retrievers` that chunk, format, and push context directly into prompts.
+
+```python
+from langchain_core.vectorstores import InMemoryVectorStore
+store = InMemoryVectorStore.from_texts(["Secret recipe is salt."], embedding_model)
+retriever = store.as_retriever()
+```
+
+---
+
+## Level 10: Production Patterns
+
+**The Goal:** Combine memory, tools, and prompts into a full, production-ready "React" (Reason + Act) loop.
+
+### LangGraph (React Agent)
+
+Instead of building the graph entirely manually, LangGraph provides the `create_react_agent` helper pattern, which combines routing, tools, and state out of the box.
+
+```python
+from langgraph.prebuilt import create_react_agent
+production_app = create_react_agent(llm, tools=[t1, t2], checkpointer=memory)
+```
+
+---
+
+## Level 11: Observability (LangSmith)
+
+**The Goal:** Monitor inputs, outputs, token costs, latency, and tool paths for thousands of user interactions in a production UI.
+
+### LangChain
+
+LangChain natively forces all tracing data to the LangSmith cloud UI simply by setting environment variables. No code changes are required!
+
+```env
+LANGCHAIN_TRACING_V2=true
+LANGCHAIN_API_KEY=lsv2_...
+LANGCHAIN_PROJECT=production_app
+```
+
+---
+
+## Level 12: Streaming & HITL (Human-in-the-Loop)
+
+**The Goal:**
+
+1. Stream tokens back to a UI instantly to lower perceived latency.
+2. Pause an AI agent right before it executes a high-stakes action (like a refund or sending an email) to get administrator approval.
 
 ```mermaid
 sequenceDiagram
     participant User
     participant App as App State
-    participant Graph as Agent Graph
+    participant Agent
     participant Admin as Human Admin
 
-    User->>Graph: "Refund $50"
-    Graph->>LLM: Tool Call (Refund)
-    Note over Graph: interrupt_before["tools"]
-    Graph->>App: Pause Execution & Save State
-    App->>Admin: Alert: "Review Refund?"
-    Admin-->>App: Click "Approve"
-    App->>Graph: Resume with state_id
-    Graph->>Tool: Execute Refund
-    Graph-->>User: "Refund Approved"
+    User->>Agent: "Refund $50"
+    Agent->>App: Tool Call (Refund)
+    Note over App: Pause Execution!
+    App->>Admin: "Review Refund?"
+    Admin-->>App: "Approve"
+    App->>Agent: Resume Tool Execution
 ```
 
 ### Google ADK
 
-Utilizes Callbacks. Specifically, `before_tool_callback`, which intercepts the tool payload natively in python so you can run custom logic (like an `input()` CLI prompt).
+ADK can use Python `generators` to stream tokens. For Human-in-the-Loop, ADK utilizes the `before_tool_callback` hook where you can pause the thread entirely (using `input()` for tests).
 
 ```python
-def approval_callback(tool, args, tool_context):
-    choice = input("Approve tool? y/n: ")
-    if choice == 'n': return {"error": "Denied"}
+def human_approval(tool, args, ctx):
+    ans = input(f"Approve {tool.name}? (y/n)")
+    if ans == 'n': return {"error": "Denied by human."}
 
-agent = Agent(name="bot", before_tool_callback=approval_callback)
+agent = Agent(tools=[refund], before_tool_callback=human_approval)
 ```
 
 ### LangGraph
 
-Operates at the Graph orchestration level. You set an `interrupt_before` flag on a specific node. The entire graphical state machine shuts down safely into the database checkpointer, freeing up backend servers, until an explicit "resume" API call is made.
+LangGraph utilizes `interrupt_before=["tools"]`. Because it uses a database checkpointer, the application safely halts and drops out of memory. It waits for a secondary REST `.invoke()` call from an administrator's UI frontend to resume the graph where it left off.
 
 ```python
-# Graph cleanly powers down before hitting the 'tools' node
-app = create_react_agent(model=llm, checkpointer=memory, interrupt_before=["tools"])
-
-# ...Later, when human clicks "Approve" button in the UI:
-app.invoke(None, config={"configurable": {"thread_id": "1"}}) # Null input resumes the graph
+app = builder.compile(checkpointer=memory, interrupt_before=["tools"])
+# Run 1 processes. execution halts before the tool node.
+# Run 2 resumes execution.
 ```
 
 ---
 
-## 8. Time Travel (State Forking)
+## Level 13: Time Travel (State Forking)
 
-### The Concept
-
-The ability to fetch historical conversation turns, rewind the agent's memory to an exact point in the past, alter a prompt or a message, and split off a new "timeline" or "fork" of the conversation.
-
-```mermaid
-graph LR
-    A[Start] --> B[Msg 1]
-    B --> C[Msg 2]
-    C --> D[Msg 3 (Original)]
-
-    C -- fork(update_state) --> E[Msg 3 (New Timeline)]
-    E --> F[Msg 4 (Alternative Result)]
-
-    style E fill:#f9f,stroke:#333,stroke-width:2px
-```
-
-### Google ADK
-
-**Not Supported natively.** You would have to manually manipulate the underlying SDK payload arrays.
+**The Goal:** Look at a past conversation, pick a historical node execution, alter a historical message, and test how it changes the future ("forking" the timeline).
 
 ### LangGraph
 
-Because of the heavy checkpointer architecture, LangGraph inherently supports this out-of-the-box using `get_state_history` and `update_state`.
+Because LangGraph saves the exact serialized state after every node step in SQLite/Postgres, you can fetch the checkpoint ID, update the state database, and effectively rewrite history.
 
 ```python
-# Look at all past nodes and messages
-history = list(app.get_state_history(config))
-
-# Pick a specific checkpoint from the past, alter the message array, and fork!
-new_config = app.update_state(
-    {"configurable": {"thread_id": "1", "checkpoint_id": history[2].checkpoint_id}},
-    {"messages": [new_altered_messages]}
-)
-app.invoke(None, config=new_config)
+history = app.get_state_history(thread_config)
+# Pick checkpoint 3 from the past and alter the DB state!
+app.update_state(checkpoint_3_config, {"messages": [altered_message]})
+app.invoke(None, config=checkpoint_3_config) # Runs altered timeline
 ```
+
+_Note: The lightweight Google ADK does not natively support complex time travel, focusing instead on straight-line execution for low latency._
+
+---
+
+_For more extensive, executable code examples, review the respective source files in the `adk_labs/` and `langchain_labs/` directories._

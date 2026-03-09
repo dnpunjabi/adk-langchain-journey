@@ -27,6 +27,10 @@ from google.adk.runners import Runner
 from google.adk.sessions import InMemorySessionService
 from google.genai import types
 
+# We will import the agent definition directly from our new adk_labs package
+# so that main.py serves as a FastAPI wrapper for the exact level code.
+from adk_labs.adk_level1_basic.agent import root_agent as adk_level1_basic_agent
+
 # ─────────────────────────────────────────────────────────────
 # Logging
 # ─────────────────────────────────────────────────────────────
@@ -81,16 +85,12 @@ def init_vertex_ai() -> None:
 # ADK Agent
 # ─────────────────────────────────────────────────────────────
 def build_agent() -> Agent:
-    return Agent(
-        name="adk_level1_basic",
-        model=MODEL,
-        description="A helpful AI assistant powered by Gemini 2.5 Flash on Vertex AI.",
-        instruction=(
-            "You are a concise, knowledgeable assistant. "
-            "Answer questions clearly and helpfully. "
-            "If you are unsure about something, say so honestly."
-        ),
-    )
+    """
+    Returns the agent defined in our learning labs. 
+    By default, this FastAPI server wraps Level 1. 
+    You can easily change this import to test Level 10 or 12 in production!
+    """
+    return adk_level1_basic_agent
 
 
 # ─────────────────────────────────────────────────────────────

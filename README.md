@@ -34,12 +34,22 @@ This is a simple server that implements an AI Agent using the [Google Agent Deve
     ```
     Or manually install from requirements:
     ```bash
-    uv pip install -r requirements.txt
+    uv pip install -r requirements/base.txt
     ```
 
-## Running the Server
+## Running the Applications
 
-Run the FastAPI Uvicorn server:
+### 1. ADK Streamlit Dashboard (Interactive Learning Labs)
+
+Explore all 10+ levels of the Google Agent Development Kit interactively.
+
+```bash
+uv run --env-file .env streamlit run adk_app.py
+```
+
+### 2. FastAPI Backend Server
+
+Run the production FastAPI Uvicorn server:
 
 ```bash
 uv run --env-file .env uvicorn main:app --reload
