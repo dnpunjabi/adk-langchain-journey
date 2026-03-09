@@ -1,0 +1,492 @@
+# 🎓 Google ADK — Step-by-Step Learning Roadmap
+
+A hands-on, progressive learning path from beginner → advanced agent builder.
+Each level builds on the previous one. All exercises use your existing project setup.
+
+---
+
+## 🧠 Core Concepts: The Anatomy of Any AI Agent
+
+Before diving into levels, understand the **5 pillars** every AI agent is built on:
+
+```mermaid
+graph TD
+    A[🤖 AI Agent] --> B[🧾 Prompts]
+    A --> C[🔧 Tools]
+    A --> D[🧠 Memory]
+    A --> E[🛡️ Guardrails]
+    A --> F[🔀 Orchestration]
+    B --> B1[System Prompt]
+    B --> B2[Developer Prompt]
+    B --> B3[User Prompt]
+    C --> C1[Function Tools]
+    C --> C2[API Tools]
+    C --> C3[Built-in Tools]
+    D --> D1[Short-term / Session]
+    D --> D2[Long-term / Database]
+    D --> D3[RAG / Knowledge Base]
+    E --> E1[Input Filters]
+    E --> E2[Output Filters]
+    E --> E3[Tool Permissions]
+    F --> F1[Single Agent]
+    F --> F2[Multi-Agent Transfer]
+    F --> F3[Workflow Pipelines]
+```
+
+| Pillar | What it does | Real-life analogy |
+|---|---|---|
+| **Prompts** | Define WHO the agent is and HOW it behaves | Job description + training manual |
+| **Tools** | Give the agent abilities beyond text generation | A toolkit — calculator, phone, database |
+| **Memory** | Let the agent remember past conversations | A notebook or filing cabinet |
+| **Guardrails** | Prevent harmful, off-topic, or incorrect outputs | Security guard + quality inspector |
+| **Orchestration** | Coordinate multiple agents working together | A manager delegating to team members |
+
+---
+
+## Level 1: Single Agent Basics ✅ *(You are here!)*
+
+**What you've already learned:**
+- Creating an [Agent](file:///C:/Users/dheer/Desktop/AI/ADK-sample/.venv/Lib/site-packages/google/adk/agents/llm_agent.py#185-998) with name, model, instruction
+- Running it via FastAPI ([main.py](file:///c:/Users/dheer/Desktop/AI/ADK-sample/main.py)) and ADK Web UI (`adk web`)
+- Connecting to Vertex AI with a service account
+- Session management with `InMemorySessionService`
+
+**Key concept:** An Agent = Model + Instructions + (optional) Tools
+
+---
+
+## Level 2: Prompt Engineering — System, Developer & User Prompts
+
+**What to learn:** The **three layers of prompts** that shape an agent's behavior.
+
+**Real-life analogy:** Think of hiring an employee:
+
+| Prompt Type | Who writes it | Analogy | Can user see it? |
+|---|---|---|---|
+| **System Prompt** | The platform/framework | Company policy handbook | ❌ No |
+| **Developer Prompt** ([instruction](file:///C:/Users/dheer/Desktop/AI/ADK-sample/.venv/Lib/site-packages/google/adk/agents/llm_agent.py#535-558)) | You, the developer | Job description & training manual | ❌ No |
+| **User Prompt** | The end user | The actual question/request | ✅ Yes |
+
+### How they map in Google ADK
+
+```python
+root_agent = Agent(
+    name="hr_assistant",
+    model="gemini-2.5-flash",
+
+    # ── DEVELOPER PROMPT (instruction) ──
+    # This is YOUR control over the agent's personality, scope, and rules.
+    # The user NEVER sees this, but the LLM follows it.
+    instruction="""
+    You are an HR assistant for Acme Corp.
+
+    ROLE:
+    - Answer employee questions about leave policies, benefits, and payroll.
+
+    RULES:
+    - Never discuss salary of other employees.
+    - Never make up policies. If unsure, say "I'll need to check with HR."
+    - Always be professional and empathetic.
+
+    FORMAT:
+    - Use bullet points for lists.
+    - Keep answers under 200 words.
+    """,
+
+    # ── SYSTEM PROMPT (global_instruction) ──
+    # Platform-level rules that apply to ALL agents in the app.
+    # Use this for company-wide policies.
+    global_instruction="""
+    You are part of the Acme Corp internal tools suite.
+    All responses must comply with company data privacy policy.
+    Never reveal internal system details to users.
+    """,
+
+    description="Answers HR-related questions for Acme Corp employees.",
+)
+
+# ── USER PROMPT ──
+# This is what the user types: "How many sick days do I have left?"
+# You DON'T write this — it comes from the chat input.
+```
+
+### Prompt Engineering Best Practices
+
+| Technique | Example | When to use |
+|---|---|---|
+| **Role definition** | "You are a senior tax advisor" | Always — gives the LLM context |
+| **Scope boundaries** | "Only answer questions about taxes" | Prevent off-topic answers |
+| **Output format** | "Respond in JSON with keys: answer, confidence" | When you need structured output |
+| **Few-shot examples** | "Example: Q: ... A: ..." | Teach specific response patterns |
+| **Chain of thought** | "Think step by step before answering" | Complex reasoning tasks |
+| **Negative rules** | "Never reveal pricing to non-customers" | Safety and compliance |
+
+---
+
+## Level 3: Custom Tools (Function Tools)
+
+**What to learn:** Give your agent **superpowers** by letting it call Python functions.
+
+**Real-life analogy:** Your assistant can now **look things up** — check order status, query a database, call APIs.
+
+### Exercise: Build a Weather Agent
+
+```python
+import random
+from google.adk.agents import Agent
+
+def get_weather(city: str) -> dict:
+    """Get the current weather for a given city."""
+    temp = random.randint(15, 35)
+    return {"city": city, "temperature": f"{temp}°C", "condition": "Sunny"}
+
+def get_time(timezone: str) -> dict:
+    """Get the current time in a timezone."""
+    from datetime import datetime
+    return {"timezone": timezone, "time": datetime.now().isoformat()}
+
+root_agent = Agent(
+    name="weather_agent",
+    model="gemini-2.5-flash",
+    instruction="You help users check weather and time. Use your tools.",
+    tools=[get_weather, get_time],   # ← Just pass Python functions!
+)
+```
+
+### Types of Tools
+
+| Tool Type | How to add | Example |
+|---|---|---|
+| **Function Tool** | Pass a Python function | `tools=[get_weather]` |
+| **Google Search** | Built-in tool | `tools=[google_search]` |
+| **Code Execution** | Built-in tool | `tools=[built_in_code_execution]` |
+| **OpenAPI Tool** | From a Swagger spec | REST API integration |
+| **MCP Tool** | Model Context Protocol | External tool servers |
+| **LangChain Tool** | Third-party wrapper | Use any LangChain tool |
+
+**Key concepts:**
+- Any Python function with **type hints + docstring** = automatic tool
+- The LLM **decides when** to call which tool based on the user's question
+- The docstring becomes the tool's description for the LLM
+
+---
+
+## Level 4: Guardrails & Safety
+
+**What to learn:** Protect your agent from misuse and ensure quality outputs.
+
+**Real-life analogy:** A building with multiple security layers — lobby guard (input), CCTV (monitoring), and exit screening (output).
+
+### The 4 Layers of Guardrails
+
+```
+User message
+    ↓
+┌─────────────────────────┐
+│ Layer 1: INPUT GUARDRAIL │  ← Block bad inputs before they reach LLM
+│ (before_model_callback)  │     • Profanity filter
+│                          │     • Prompt injection detection
+│                          │     • Topic scope check
+└─────────────────────────┘
+    ↓
+┌─────────────────────────┐
+│ Layer 2: INSTRUCTION     │  ← Tell the LLM what NOT to do
+│ (Developer Prompt)       │     • "Never discuss competitors"
+│                          │     • "Refuse medical/legal advice"
+└─────────────────────────┘
+    ↓
+┌─────────────────────────┐
+│ Layer 3: TOOL GUARDRAIL  │  ← Control what tools can do
+│ (before_tool_callback)   │     • Rate limiting API calls
+│                          │     • Permission checks
+│                          │     • Input validation
+└─────────────────────────┘
+    ↓
+┌─────────────────────────┐
+│ Layer 4: OUTPUT GUARDRAIL│  ← Filter/modify the response
+│ (after_model_callback)   │     • PII redaction (remove phone/email)
+│                          │     • Hallucination check
+│                          │     • Tone/brand compliance
+└─────────────────────────┘
+    ↓
+Final response to user
+```
+
+### Exercise: Build a Guarded Agent
+
+```python
+from google.adk.agents import Agent
+from google.genai import types
+from google.adk.models.llm_response import LlmResponse
+import re
+
+# ── Layer 1: Input Guardrail ──
+def input_guardrail(callback_context, llm_request):
+    """Block prompt injection and off-topic requests."""
+    user_msg = str(llm_request.contents[-1]) if llm_request.contents else ""
+    msg_lower = user_msg.lower()
+
+    # Block prompt injection attempts
+    injection_patterns = ["ignore previous", "ignore all instructions", "system prompt"]
+    for pattern in injection_patterns:
+        if pattern in msg_lower:
+            return LlmResponse(
+                content=types.Content(role="model",
+                    parts=[types.Part(text="I can't process that request.")])
+            )
+    return None  # proceed normally
+
+# ── Layer 4: Output Guardrail ──
+def output_guardrail(callback_context, llm_response):
+    """Redact PII from responses."""
+    if llm_response.content and llm_response.content.parts:
+        for part in llm_response.content.parts:
+            if part.text:
+                # Redact email addresses
+                part.text = re.sub(
+                    r'[\w.-]+@[\w.-]+\.\w+', '[EMAIL REDACTED]', part.text
+                )
+                # Redact phone numbers
+                part.text = re.sub(
+                    r'\b\d{10,12}\b', '[PHONE REDACTED]', part.text
+                )
+    return llm_response
+
+root_agent = Agent(
+    name="guarded_agent",
+    model="gemini-2.5-flash",
+    instruction=(
+        "You are a helpful customer service agent.\n\n"
+        "RULES:\n"
+        "- Never share other customers' personal information.\n"
+        "- Never provide medical, legal, or financial advice.\n"
+        "- If asked to do something outside your scope, politely decline.\n"
+    ),
+    before_model_callback=input_guardrail,
+    after_model_callback=output_guardrail,
+)
+```
+
+---
+
+## Level 5: Callbacks (Monitoring & Control)
+
+**What to learn:** Intercept agent behavior at every stage for logging, metrics, and customization.
+
+**All callback hooks:**
+
+| Callback | When it fires | Use case |
+|---|---|---|
+| `before_agent_callback` | Before agent starts processing | Auth check, rate limit, logging |
+| `after_agent_callback` | After agent finishes | Metrics, cleanup |
+| [before_model_callback](file:///C:/Users/dheer/Desktop/AI/ADK-sample/.venv/Lib/site-packages/google/adk/agents/llm_agent.py#617-630) | Before each LLM call | Input filtering, prompt modification |
+| [after_model_callback](file:///C:/Users/dheer/Desktop/AI/ADK-sample/.venv/Lib/site-packages/google/adk/agents/llm_agent.py#631-642) | After each LLM response | Output filtering, PII redaction |
+| [before_tool_callback](file:///C:/Users/dheer/Desktop/AI/ADK-sample/.venv/Lib/site-packages/google/adk/agents/llm_agent.py#657-670) | Before a tool runs | Permission checks, input validation |
+| [after_tool_callback](file:///C:/Users/dheer/Desktop/AI/ADK-sample/.venv/Lib/site-packages/google/adk/agents/llm_agent.py#671-684) | After a tool returns | Result caching, error handling |
+
+### Exercise: Add Full Observability
+
+```python
+import time
+
+def log_agent_start(callback_context):
+    callback_context.state["_start_time"] = time.time()
+    print(f"🚀 Agent started: {callback_context.agent_name}")
+    return None
+
+def log_agent_end(callback_context):
+    elapsed = time.time() - callback_context.state.get("_start_time", 0)
+    print(f"✅ Agent finished in {elapsed:.2f}s")
+    return None
+
+def log_tool_call(callback_context, tool_name, tool_args):
+    print(f"🔧 Tool called: {tool_name}({tool_args})")
+    return None
+
+root_agent = Agent(
+    name="observed_agent",
+    model="gemini-2.5-flash",
+    instruction="You are a helpful assistant.",
+    before_agent_callback=log_agent_start,
+    after_agent_callback=log_agent_end,
+    before_tool_callback=log_tool_call,
+)
+```
+
+---
+
+## Level 6: Multi-Agent — Agent Transfer (Delegation)
+
+**What to learn:** Multiple specialized agents that **hand off** to each other.
+
+**Real-life analogy:** A call center where the receptionist transfers you to Sales, Support, or Billing depending on your question.
+
+### Exercise: Customer Service Bot
+
+```python
+from google.adk.agents import Agent
+
+sales_agent = Agent(
+    name="sales_agent",
+    model="gemini-2.5-flash",
+    instruction="You handle sales — pricing, plans, purchases.",
+)
+
+support_agent = Agent(
+    name="support_agent",
+    model="gemini-2.5-flash",
+    instruction="You handle tech support — bugs, troubleshooting.",
+)
+
+billing_agent = Agent(
+    name="billing_agent",
+    model="gemini-2.5-flash",
+    instruction="You handle billing — invoices, refunds, payments.",
+)
+
+root_agent = Agent(
+    name="customer_service",
+    model="gemini-2.5-flash",
+    instruction=(
+        "You are the front desk. Route users to:\n"
+        "- Sales questions → sales_agent\n"
+        "- Technical issues → support_agent\n"
+        "- Billing questions → billing_agent\n"
+    ),
+    sub_agents=[sales_agent, support_agent, billing_agent],
+)
+```
+
+**Key concepts:**
+- Root agent **decides** which sub-agent to delegate to
+- Sub-agents can transfer to **each other** or back to root
+- ADK handles the "transfer" automatically
+
+---
+
+## Level 7: Workflow Agents (Orchestration)
+
+**What to learn:** Deterministic pipelines where agents run in a **fixed order**, not LLM-decided.
+
+**Real-life analogy:** An assembly line — Step 1 always happens before Step 2.
+
+| Agent Type | What it does | Analogy |
+|---|---|---|
+| `SequentialAgent` | Runs sub-agents **one after another** | Assembly line |
+| `ParallelAgent` | Runs sub-agents **at the same time** | Multiple workers on different tasks |
+| `LoopAgent` | Runs sub-agents **repeatedly** until a condition | Quality control loop |
+
+### Exercise: Content Pipeline
+
+```python
+from google.adk.agents import Agent, SequentialAgent
+
+researcher = Agent(
+    name="researcher", model="gemini-2.5-flash",
+    instruction="Research the topic. Save findings to {research_notes}.",
+    output_key="research_notes",
+)
+
+writer = Agent(
+    name="writer", model="gemini-2.5-flash",
+    instruction="Using {research_notes}, write a polished blog post.",
+    output_key="blog_post",
+)
+
+reviewer = Agent(
+    name="reviewer", model="gemini-2.5-flash",
+    instruction="Review {blog_post}. Provide a final improved version.",
+)
+
+root_agent = SequentialAgent(
+    name="content_pipeline",
+    sub_agents=[researcher, writer, reviewer],
+)
+```
+
+---
+
+## Level 8: State Management & Memory
+
+**What to learn:** Share data between agents and persist across turns.
+
+| Type | Scope | How to use |
+|---|---|---|
+| **Session State** | Shared across agents in a session | `output_key`, `{variable}` in instructions |
+| **Tool Context State** | Set inside tools | `tool_context.state["key"] = value` |
+| **Persistent Memory** | Survives server restarts | `DatabaseSessionService` |
+
+---
+
+## Level 9: RAG & Grounding
+
+**What to learn:** Let your agent answer questions from **your own documents/data**.
+
+**Real-life analogy:** Instead of the expert answering from memory, they first search a filing cabinet for the relevant documents, then answer based on what they find.
+
+| Approach | What it does | When to use |
+|---|---|---|
+| **Google Search grounding** | Agent searches the live web | General knowledge, current events |
+| **Vertex AI Search** | Agent searches your uploaded docs | Internal knowledge base, PDFs, policies |
+| **Custom RAG tool** | You build search + retrieval | Full control, custom databases |
+
+### Exercise: Agent with Google Search Grounding
+
+```python
+from google.adk.agents import Agent
+from google.adk.tools import google_search
+
+root_agent = Agent(
+    name="research_agent",
+    model="gemini-2.5-flash",
+    instruction=(
+        "You answer questions using web search. "
+        "Always cite your sources with URLs."
+    ),
+    tools=[google_search],
+)
+```
+
+---
+
+## Level 10: Production Patterns
+
+### Checklist
+
+- [ ] **Persistent sessions** — Replace `InMemorySessionService` with `DatabaseSessionService`
+- [ ] **Streaming responses** — Use SSE `/chat/stream` for real-time UI
+- [ ] **Error handling** — [before_model_callback](file:///C:/Users/dheer/Desktop/AI/ADK-sample/.venv/Lib/site-packages/google/adk/agents/llm_agent.py#617-630) for retries, fallback responses
+- [ ] **Observability** — OpenTelemetry tracing (ADK has built-in support)
+- [ ] **Rate limiting** — Throttle in [before_model_callback](file:///C:/Users/dheer/Desktop/AI/ADK-sample/.venv/Lib/site-packages/google/adk/agents/llm_agent.py#617-630)
+- [ ] **Authentication** — API key / OAuth middleware on FastAPI
+- [ ] **Deployment** — Docker → Cloud Run / GKE
+- [ ] **Evaluation** — `adk eval` to test agent quality with eval sets
+- [ ] **Cost control** — Monitor token usage via `usage_metadata` in events
+
+---
+
+## 🗺️ Suggested Learning Order
+
+```
+Level  1: Single Agent Basics          ✅ Done!
+Level  2: Prompt Engineering           ← Start here next
+Level  3: Custom Tools
+Level  4: Guardrails & Safety
+Level  5: Callbacks (Monitoring)
+Level  6: Multi-Agent Transfer
+Level  7: Workflow Agents
+Level  8: State & Memory
+Level  9: RAG & Grounding
+Level 10: Production Patterns
+```
+
+> **Tip:** For each level, build the exercise, test it with `adk web`,
+> then integrate it into your [main.py](file:///c:/Users/dheer/Desktop/AI/ADK-sample/main.py) FastAPI server!
+
+---
+
+## 📚 Official Resources
+
+- [ADK Documentation](https://google.github.io/adk-docs/)
+- [ADK GitHub](https://github.com/google/adk-python)
+- [ADK Samples](https://github.com/google/adk-samples)

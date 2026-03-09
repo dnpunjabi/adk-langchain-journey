@@ -1,0 +1,32 @@
+# LangChain Ecosystem Learning Roadmap
+
+We are going to recreate our exact 10-level ADK journey, but this time using the industry-standard **LangChain ecosystem**:
+1. **LangChain** (for prompts, tools, chains, and basic LLM interaction)
+2. **LangGraph** (for state, orchestration, and multi-agent workflows)
+3. **LangSmith** (for observability, callbacks, and tracing)
+
+All examples will continue to use Google Gemini as the underlying model via `langchain-google-genai`.
+
+## The 10-Level Journey (LangChain Edition)
+
+| Level | Topic | ADK Equivalent | LangChain Ecosystem Tools |
+|---|---|---|---|
+| **1** | Single Agent Basics | [Agent(model=...)](file:///C:/Users/dheer/Desktop/AI/ADK-sample/.venv/Lib/site-packages/google/adk/agents/llm_agent.py#185-998) | `ChatGoogleGenerativeAI` + `invoke()` |
+| **2** | Prompt Engineering | [instruction](file:///C:/Users/dheer/Desktop/AI/ADK-sample/.venv/Lib/site-packages/google/adk/agents/llm_agent.py#535-558) / [global_instruction](file:///C:/Users/dheer/Desktop/AI/ADK-sample/.venv/Lib/site-packages/google/adk/agents/llm_agent.py#559-592) | `PromptTemplate`, `ChatPromptTemplate`, Messages (`SystemMessage`, `HumanMessage`) |
+| **3** | Custom Tools | `def my_tool():` + `tools=[...]` | `@tool` decorator, `bind_tools()` |
+| **4** | Guardrails | [before_model](file:///c:/Users/dheer/Desktop/AI/ADK-sample/monitored_assistant/agent.py#103-128) / [after_model](file:///c:/Users/dheer/Desktop/AI/ADK-sample/monitored_assistant/agent.py#133-173) | LangChain Runnables (LCEL), Custom Chain components for validation |
+| **5** | Callbacks & Observability | *The 5 Callbacks* | **LangSmith** tracing, `Callbacks` handlers (`BaseCallbackHandler`) |
+| **6** | Multi-Agent Transfer | `sub_agents=[...]` (LLM routing) | **LangGraph** (Conditional Edges, Supervisor Agent pattern) |
+| **7** | Workflow Agents | [SequentialAgent](file:///C:/Users/dheer/Desktop/AI/ADK-sample/.venv/Lib/site-packages/google/adk/agents/sequential_agent.py#48-160), [ParallelAgent](file:///C:/Users/dheer/Desktop/AI/ADK-sample/.venv/Lib/site-packages/google/adk/agents/parallel_agent.py#150-217) | **LangGraph** (StateGraphs, Nodes, strictly defined Edges) |
+| **8** | State & Memory | `ctx.state` | **LangGraph** [State](file:///c:/Users/dheer/Desktop/AI/ADK-sample/main.py#99-102) (TypedDict), `checkpointer` (MemorySaver) |
+| **9** | RAG & Grounding | [google_search](file:///C:/Users/dheer/Desktop/AI/ADK-sample/.venv/Lib/site-packages/google/adk/tools/google_search_agent_tool.py#33-48), knowledge base search | `VectorStore` (Chroma), `Embeddings`, `create_retrieval_chain` |
+| **10** | Production Patterns | *The Ultimate Agent* | LangGraph Compiled Application with Tracing + State + Tools |
+
+---
+
+## Technical Stack Setup
+Before we start Level 1, we will need to install the ecosystem:
+```bash
+uv pip install langchain langchain-google-genai langgraph langsmith
+```
+And set up our environment variables (you already have `GEMINI_API_KEY`, but we will need LangSmith keys later for Level 5).
