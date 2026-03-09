@@ -39,7 +39,7 @@ fi
 echo -e "\n========================================"
 echo " Installing Google ADK Dependencies..."
 echo "========================================"
-uv pip install -r adk_requirements.txt
+uv pip install -r requirements/adk.txt
 
 echo -e "\n\033[1;36m========================================================\033[0m"
 echo -e "\033[1;36m               ADK SETUP COMPLETE (macOS/Linux)         \033[0m"

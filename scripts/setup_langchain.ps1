@@ -40,7 +40,7 @@ LANGCHAIN_PROJECT=ADK-Learning-Journey
 Write-Host "`n========================================"
 Write-Host " Installing LangChain Dependencies..."
 Write-Host "========================================"
-uv pip install -r lc_requirements.txt
+uv pip install -r requirements/langchain.txt
 
 Write-Host "`n========================================================`n" -ForegroundColor Cyan
 Write-Host "            LANGCHAIN SETUP COMPLETE (WINDOWS)          `n" -ForegroundColor Cyan

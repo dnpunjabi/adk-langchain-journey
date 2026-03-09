@@ -39,7 +39,7 @@ fi
 echo -e "\n========================================"
 echo " Installing LangChain Dependencies..."
 echo "========================================"
-uv pip install -r lc_requirements.txt
+uv pip install -r requirements/langchain.txt
 
 echo -e "\n\033[1;36m========================================================\033[0m"
 echo -e "\033[1;36m            LANGCHAIN SETUP COMPLETE (macOS/Linux)      \033[0m"

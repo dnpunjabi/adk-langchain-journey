@@ -40,7 +40,7 @@ LANGCHAIN_PROJECT=ADK-Learning-Journey
 Write-Host "`n========================================"
 Write-Host " Installing Google ADK Dependencies..."
 Write-Host "========================================"
-uv pip install -r adk_requirements.txt
+uv pip install -r requirements/adk.txt
 
 Write-Host "`n========================================================`n" -ForegroundColor Cyan
 Write-Host "               ADK SETUP COMPLETE (WINDOWS)             `n" -ForegroundColor Cyan
