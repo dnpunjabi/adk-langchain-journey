@@ -17,7 +17,7 @@ import lc_level10_production
 import lc_level11_langsmith
 import lc_level12_advanced
 import lc_level13_timetravel
-import adk_level12_advanced
+import adk_level12_comparison as adk_level12_advanced
 
 load_dotenv()
 

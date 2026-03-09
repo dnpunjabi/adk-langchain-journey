@@ -69,13 +69,21 @@ chmod +x setup_langchain.sh
    Ensure your `.env` file exists in the root directory and contains your Google keys AND LangSmith tracing configurations.
 
    ```env
-   # API Keys
-   GEMINI_API_KEY=your_key_here
+   # Infrastructure Settings
+   GOOGLE_GENAI_USE_VERTEXAI=true
+   GOOGLE_CLOUD_PROJECT=your-project-id
+   GOOGLE_CLOUD_LOCATION=us-central1
+   GOOGLE_APPLICATION_CREDENTIALS=your-service-account-key.json
+
+   # API Keys (AI Studio fallback)
+   GEMINI_API_KEY=your-gemini-api-key
+
+   # Model Settings
    MODEL=gemini-2.5-flash
 
-   # LangSmith Observability
+   # Observability (LangSmith)
    LANGCHAIN_TRACING_V2=true
-   LANGCHAIN_API_KEY=your_langsmith_key
+   LANGCHAIN_API_KEY=your-langsmith-api-key
    LANGCHAIN_PROJECT=ADK-Learning-Journey
    ```
 
@@ -87,7 +95,7 @@ All 13 LangChain/LangGraph levels have been integrated into a beautiful, interac
 **To Start:**
 
 ```powershell
-uv run streamlit run lc_app.py
+uv run --env-file .env streamlit run lc_app.py
 # This launches the application on http://localhost:8501
 ```
 

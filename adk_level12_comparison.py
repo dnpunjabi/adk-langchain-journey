@@ -1,5 +1,5 @@
 """
-Google ADK Level 12: Advanced - Streaming & Human-in-the-Loop
+Level 12: Advanced Streaming & HITL Comparison — adk_level12_comparison
 
 This script demonstrates how the bare-metal Google Gen AI SDK handles the same 
 concepts as LangGraph's Level 12:

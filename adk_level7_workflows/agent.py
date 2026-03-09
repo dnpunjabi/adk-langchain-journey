@@ -1,5 +1,5 @@
 """
-Level 7: Workflow Agents — Content Pipeline
+Level 7: Workflow Agents — adk_level7_workflows
 
 In Level 6 we used sub_agents for DYNAMIC routing (LLM decides).
 Now we use WORKFLOW AGENTS for DETERMINISTIC control flow.
@@ -154,7 +154,7 @@ editor = Agent(
 # This is the ROOT AGENT that ADK discovers.
 # SequentialAgent runs: researcher → parallel_writers → editor
 root_agent = SequentialAgent(
-    name="content_pipeline",
+    name="adk_level7_workflows",
     description="A content creation pipeline: research → parallel writing → editing.",
     sub_agents=[researcher, parallel_writers, editor],
 )

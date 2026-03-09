@@ -1,5 +1,5 @@
 """
-Level 6: Multi-Agent Transfer — Company Hub
+Level 6: Multi-Agent Transfer — adk_level6_multiagent
 
 This agent demonstrates MULTI-AGENT SYSTEMS in Google ADK.
 
@@ -232,7 +232,7 @@ sales_agent = Agent(
 # The root agent's job is to understand the user's intent and
 # delegate to the right specialist. It uses the sub_agents field.
 root_agent = Agent(
-    name="company_hub",
+    name="adk_level6_multiagent",
     model=MODEL,
     description="Acme Corp's central assistant that routes questions to the right specialist.",
     instruction=(

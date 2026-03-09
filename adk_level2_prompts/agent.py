@@ -1,5 +1,5 @@
 """
-Level 2: Prompt Engineering — HR Assistant Agent
+Level 2: Prompt Engineering — adk_level2_prompts
 
 This agent demonstrates the THREE layers of prompts in Google ADK:
 
@@ -32,7 +32,7 @@ from google.adk.agents import Agent
 MODEL = os.getenv("MODEL", "gemini-2.5-flash")
 
 root_agent = Agent(
-    name="hr_assistant",
+    name="adk_level2_prompts",
     model=MODEL,
     description="An HR assistant for Acme Corp that answers employee questions about company policies.",
 

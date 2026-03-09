@@ -1,6 +1,7 @@
 """
-Agent definition for the ADK Web UI.
+Level 1: Single Agent Basics — adk_level1_basic
 
+This is the simplest possible ADK agent.
 The ADK CLI (`adk web`) auto-discovers this file inside the agent folder.
 Environment variables are loaded from the .env file in the project root.
 """
@@ -16,7 +17,7 @@ from google.adk.agents import Agent
 MODEL = os.getenv("MODEL", "gemini-2.5-flash")
 
 root_agent = Agent(
-    name="gemini_assistant",
+    name="adk_level1_basic",
     model=MODEL,
     description="A helpful AI assistant powered by Gemini 2.5 Flash on Vertex AI.",
     instruction=(

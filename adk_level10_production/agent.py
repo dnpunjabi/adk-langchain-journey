@@ -1,5 +1,5 @@
 """
-Level 10: Production Patterns — The Complete Agent
+Level 10: Production Patterns — adk_level10_production
 
 This is the FINAL LEVEL. We combine EVERYTHING from Levels 1-9
 into one production-ready, deployable agent system.
@@ -350,7 +350,7 @@ tech_agent = Agent(
 #  ROOT AGENT — Production-Grade Customer Support
 # ══════════════════════════════════════════════════════════════
 root_agent = Agent(
-    name="production_agent",
+    name="adk_level10_production",
     model=MODEL,
     description="Production-grade customer support agent for Acme Store.",
 

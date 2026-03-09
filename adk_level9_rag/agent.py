@@ -1,5 +1,5 @@
 """
-Level 9: RAG & Grounding — Grounded Assistant
+Level 9: RAG & Grounding — adk_level9_rag
 
 THE PROBLEM WITH LLMs:
   LLMs have a "knowledge cutoff" — they don't know recent events.
@@ -183,7 +183,7 @@ search_tool = GoogleSearchAgentTool(
 )
 
 root_agent = Agent(
-    name="grounded_assistant",
+    name="adk_level9_rag",
     model=MODEL,
     description="A grounded assistant with access to Google Search and internal knowledge base.",
     instruction=(

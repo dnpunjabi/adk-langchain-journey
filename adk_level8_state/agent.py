@@ -1,5 +1,5 @@
 """
-Level 8: State & Memory — Stateful Assistant
+Level 8: State Management & Memory — adk_level8_state
 
 Previous levels: agents were STATELESS — each conversation turn was
 independent. Now we add STATE to remember things across turns.
@@ -187,7 +187,7 @@ def get_session_stats(tool_context) -> dict:
 # THE AGENT
 # ══════════════════════════════════════════════════════════════
 root_agent = Agent(
-    name="stateful_assistant",
+    name="adk_level8_state",
     model=MODEL,
     description="An assistant that remembers your preferences and tracks session state.",
     instruction=(

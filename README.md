@@ -42,7 +42,7 @@ This is a simple server that implements an AI Agent using the [Google Agent Deve
 Run the FastAPI Uvicorn server:
 
 ```bash
-uv run uvicorn main:app --reload
+uv run --env-file .env uvicorn main:app --reload
 ```
 
 or

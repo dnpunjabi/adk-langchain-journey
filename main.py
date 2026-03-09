@@ -82,7 +82,7 @@ def init_vertex_ai() -> None:
 # ─────────────────────────────────────────────────────────────
 def build_agent() -> Agent:
     return Agent(
-        name="gemini_assistant",
+        name="adk_level1_basic",
         model=MODEL,
         description="A helpful AI assistant powered by Gemini 2.5 Flash on Vertex AI.",
         instruction=(

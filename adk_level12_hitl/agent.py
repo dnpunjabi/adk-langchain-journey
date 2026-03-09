@@ -1,3 +1,8 @@
+"""
+Level 12: Human-in-the-Loop — adk_level12_hitl
+
+This agent demonstrates Human-in-the-Loop intervention in ADK.
+"""
 import os
 from dotenv import load_dotenv
 
@@ -58,7 +63,7 @@ def human_approval_callback(tool, args, tool_context):
 
 # --- 3. The ADK Agent ---
 root_agent = Agent(
-    name="human_in_loop",
+    name="adk_level12_hitl",
     model=MODEL,
     description="An ADK agent demonstrating Human-in-the-Loop intervention.",
     

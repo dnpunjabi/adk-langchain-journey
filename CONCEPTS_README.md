@@ -2,6 +2,20 @@
 
 This document serves as the master reference guide for all the Core AI Agent concepts we explored. For every feature, it explains the **Concept**, how it is implemented in the **Google ADK (Gen AI SDK)**, and how it is implemented in **LangChain/LangGraph**.
 
+## 🚀 Quick Feature Comparison
+
+| Feature          | Google ADK                          | LangChain / LangGraph                     |
+| :--------------- | :---------------------------------- | :---------------------------------------- |
+| **Inference**    | Direct `Agent.run()`                | `Runnable` interface / `.invoke()`        |
+| **Tool Calling** | Auto-execution via Python list      | Manual binding; requires Executor/Graph   |
+| **Multi-Agent**  | Native hierarchical `sub_agents`    | State-based Directed Acyclic Graph (DAG)  |
+| **Memory**       | In-memory sessions (stateless REST) | Persistent DB Checkpointers (Thread-safe) |
+| **Streaming**    | Message generators                  | Token-level generators & Event streams    |
+| **Control Flow** | Callback-based interrupts           | Interrupt nodes & state persistence       |
+| **Time Travel**  | Manual payload manipulation         | Native `update_state` & Forking           |
+
+---
+
 ---
 
 ## 1. Basic Agent Initialization & Inference
@@ -9,6 +23,21 @@ This document serves as the master reference guide for all the Core AI Agent con
 ### The Concept
 
 At the core of any AI wrapper, the framework must convert your text into a payload the LLM API understands (often referred to as an "invoke" or "generate" call).
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Script
+    participant SDK as Framework (ADK/LangChain)
+    participant LLM as Vertex AI / Gemini
+
+    User->>Script: Run query ("Hello")
+    Script->>SDK: Initialize & Call Invoke
+    SDK->>LLM: JSON POST Request (Payload)
+    LLM-->>SDK: JSON Response
+    SDK-->>Script: Parsed Response object
+    Script-->>User: Final Text
+```
 
 ### Google ADK
 
@@ -77,6 +106,24 @@ chain.invoke({"user_input": "Hello"})
 
 Giving the LLM the ability to "interact" with the outside world (databases, APIs, math calculations). We provide the LLM a JSON schema of the tool. If the LLM decides it needs the tool, it halts text generation and returns a JSON payload requesting the tool execution. The framework runs the python function and feeds the result back to the LLM.
 
+```mermaid
+sequenceDiagram
+    participant User
+    participant SDK as Framework Loop
+    participant LLM as Gemini
+    participant Tool as Python Function
+
+    User->>SDK: Query ("Weather in NY?")
+    SDK->>LLM: Send Input + Tool Schemas
+    LLM->>SDK: Tool Call Request (get_weather, city="NY")
+    Note over SDK: Loop Intercepts Call
+    SDK->>Tool: Execute get_weather("NY")
+    Tool-->>SDK: Return "Sunny, 25°C"
+    SDK->>LLM: Send Tool Result
+    LLM-->>SDK: Generate final natural language summary
+    SDK-->>User: "The weather in New York is sunny and 25°C."
+```
+
 ### Google ADK
 
 You pass a python function array directly to the Agent.
@@ -115,6 +162,30 @@ llm_with_tools = llm.bind_tools([get_weather])
 ### The Concept
 
 Instead of one massive prompt, splitting up responsibilities among specialized agents. An orchestrator agent determines which sub-agent is best suited for the user's query and routes it.
+
+![Specialized AI agents working together](file:///C:/Users/dheer/.gemini/antigravity/brain/66fa6df7-3476-4612-b72e-f7a88a936ffb/multi_agent_collaboration_1773059482192.png)
+_Figure 1: Specialized agents (Researcher, Coder, Writer) collaborating on a complex task._
+
+### Routing Architectures
+
+| Pattern                       | Logic Flow                             | Complexity                   |
+| :---------------------------- | :------------------------------------- | :--------------------------- |
+| **Google ADK (Hierarchical)** | Root -> Sub-Agent (Linear)             | Simple, easy to scale depth  |
+| **LangGraph (Stateful)**      | State -> Node -> Edge -> Node (Cyclic) | High control, complex cycles |
+
+```mermaid
+graph TD
+    subgraph ADK_Hierarchical
+        A[Router Agent] --> B[Math Agent]
+        A --> C[HR Agent]
+    end
+
+    subgraph LangGraph_Cyclic
+        D[Router Node] -- Edge --> E[Specialist Node]
+        E -- Edge --> D
+        E -- Finish --> F[End]
+    end
+```
 
 ### Google ADK
 
@@ -189,6 +260,18 @@ for event in graph.stream({"messages": [("user", "Hello")]}):
 
 Remembering the conversation history. Because REST API calls are stateless, the entire chat history must be bundled and sent to the LLM upon every new request.
 
+![Visual metaphor for AI memory](file:///C:/Users/dheer/.gemini/antigravity/brain/66fa6df7-3476-4612-b72e-f7a88a936ffb/agentic_memory_metaphor_1773059496814.png)
+_Figure 2: Understanding Short-term (Session) vs. Long-term (Persistent) Agent State._
+
+### Memory Comparison
+
+| Feature         | Session Memory (ADK)   | Persistent Checkpointers (LangGraph) |
+| :-------------- | :--------------------- | :----------------------------------- |
+| **Storage**     | RAM (Python Object)    | External Database (SQLite/Postgres)  |
+| **Resilience**  | Lost on Server Restart | Survives crashes and deployments     |
+| **Scalability** | Limited to single node | Horizontal scale via shared DB       |
+| **Control**     | manual `append`        | Automatic state snapshots per node   |
+
 ### Google ADK
 
 The ADK uses local session objects (like `client.chats.create()`) which hold the history array in active memory. To persist across servers, it supports saving/loading JSON strings.
@@ -221,6 +304,24 @@ app.invoke({"messages": [("user", "Hello")]}, config={"configurable": {"thread_i
 
 Pausing the execution of the application right before it runs a high-stakes tool (like a refund or email) to ask a human administrator for `Yes/No` approval.
 
+```mermaid
+sequenceDiagram
+    participant User
+    participant App as App State
+    participant Graph as Agent Graph
+    participant Admin as Human Admin
+
+    User->>Graph: "Refund $50"
+    Graph->>LLM: Tool Call (Refund)
+    Note over Graph: interrupt_before["tools"]
+    Graph->>App: Pause Execution & Save State
+    App->>Admin: Alert: "Review Refund?"
+    Admin-->>App: Click "Approve"
+    App->>Graph: Resume with state_id
+    Graph->>Tool: Execute Refund
+    Graph-->>User: "Refund Approved"
+```
+
 ### Google ADK
 
 Utilizes Callbacks. Specifically, `before_tool_callback`, which intercepts the tool payload natively in python so you can run custom logic (like an `input()` CLI prompt).
@@ -252,6 +353,18 @@ app.invoke(None, config={"configurable": {"thread_id": "1"}}) # Null input resum
 ### The Concept
 
 The ability to fetch historical conversation turns, rewind the agent's memory to an exact point in the past, alter a prompt or a message, and split off a new "timeline" or "fork" of the conversation.
+
+```mermaid
+graph LR
+    A[Start] --> B[Msg 1]
+    B --> C[Msg 2]
+    C --> D[Msg 3 (Original)]
+
+    C -- fork(update_state) --> E[Msg 3 (New Timeline)]
+    E --> F[Msg 4 (Alternative Result)]
+
+    style E fill:#f9f,stroke:#333,stroke-width:2px
+```
 
 ### Google ADK
 

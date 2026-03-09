@@ -69,15 +69,22 @@ chmod +x setup_adk.sh
    Ensure your `.env` file exists in the root directory and contains:
 
    ```env
-   # API Keys
-   GEMINI_API_KEY=your_key_here
+   # Infrastructure Settings
+   GOOGLE_GENAI_USE_VERTEXAI=true
+   GOOGLE_CLOUD_PROJECT=your-project-id
+   GOOGLE_CLOUD_LOCATION=us-central1
+   GOOGLE_APPLICATION_CREDENTIALS=your-service-account-key.json
+
+   # API Keys (AI Studio fallback)
+   GEMINI_API_KEY=your-gemini-api-key
+
+   # Model Settings
    MODEL=gemini-2.5-flash
 
-   # For Vertex AI (if applicable)
-   GOOGLE_GENAI_USE_VERTEXAI=true
-   GOOGLE_CLOUD_PROJECT=your_project_id
-   GOOGLE_CLOUD_LOCATION=us-central1
-   GOOGLE_APPLICATION_CREDENTIALS=path/to/key.json
+   # Observability (LangSmith)
+   LANGCHAIN_TRACING_V2=true
+   LANGCHAIN_API_KEY=your-langsmith-api-key
+   LANGCHAIN_PROJECT=ADK-Learning-Journey
    ```
 
 ## Running the Agents
@@ -88,7 +95,7 @@ The ADK team provides a built-in React UI for testing basic agents.
 **To Start:**
 
 ```powershell
-uv run adk run web
+uv run --env-file .env adk web
 # This launches the server. Open the URL provided in the console (usually http://localhost:8080 or 8081).
 ```
 
@@ -97,11 +104,11 @@ Press `Ctrl + C` in the terminal where it is running.
 
 ### ADK CLI Mode (For Human-in-the-Loop tests)
 
-Because Python `input()` hangs a web server, agents like our `human_in_loop` must be tested in the CLI.
+Because Python `input()` hangs a web server, agents like our `adk_level12_hitl` must be tested in the CLI.
 **To Start:**
 
 ```powershell
-uv run adk run human_in_loop
+uv run --env-file .env adk adk_level12_hitl
 ```
 
 **To Stop:**

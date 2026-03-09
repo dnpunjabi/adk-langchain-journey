@@ -1,5 +1,5 @@
 """
-Level 5: Callbacks — Monitored Assistant Agent
+Level 5: Callbacks (Monitoring) — adk_level5_callbacks
 
 In Level 4, we used callbacks as GUARDRAILS (blocking bad input/output).
 Now we go deeper: callbacks for MONITORING, AUDITING, and FLOW CONTROL.
@@ -298,7 +298,7 @@ def get_stock_price(symbol: str) -> dict:
 # THE AGENT — with ALL 5 callbacks attached
 # ══════════════════════════════════════════════════════════════
 root_agent = Agent(
-    name="monitored_assistant",
+    name="adk_level5_callbacks",
     model=MODEL,
     description="A fully monitored assistant that logs every step of the callback lifecycle.",
     instruction=(

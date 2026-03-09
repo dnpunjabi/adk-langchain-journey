@@ -1,5 +1,5 @@
 """
-Level 3: Custom Tools — Smart Assistant Agent
+Level 3: Custom Tools — adk_level3_tools
 
 This agent demonstrates FUNCTION TOOLS in Google ADK.
 
@@ -160,7 +160,7 @@ def get_current_time(city: str) -> dict:
 # THE AGENT — with all 4 tools attached
 # ══════════════════════════════════════════════════════════════
 root_agent = Agent(
-    name="smart_assistant",
+    name="adk_level3_tools",
     model=MODEL,
     description="A smart assistant that can check weather, do math, look up employees, and tell time.",
     instruction=(

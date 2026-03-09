@@ -1,5 +1,5 @@
 """
-Level 4: Guardrails & Safety — Guarded Assistant Agent
+Level 4: Guardrails & Safety — adk_level4_guardrails
 
 This agent demonstrates the 4-LAYER GUARDRAIL SYSTEM:
 
@@ -292,7 +292,7 @@ def lookup_employee(department: str) -> dict:
 # THE AGENT — with all 4 guardrail layers attached
 # ══════════════════════════════════════════════════════════════
 root_agent = Agent(
-    name="guarded_assistant",
+    name="adk_level4_guardrails",
     model=MODEL,
     description="A safety-first assistant with 4-layer guardrails (input, instruction, tool, output).",
 
