@@ -28,3 +28,4 @@ Thumbs.db
 # Generated debug and intermediate files
 *.md.resolved
 traceback.txt
+resolved.md

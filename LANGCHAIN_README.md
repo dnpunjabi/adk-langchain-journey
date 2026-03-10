@@ -91,10 +91,11 @@ chmod +x scripts/setup_langchain.sh
 
 We provide multiple interfaces for testing the LangChain learning levels.
 
-| Interface Type                              | Start Command                                      | Description                                                     | Stop Command |
-| :------------------------------------------ | :------------------------------------------------- | :-------------------------------------------------------------- | :----------- |
-| **Streamlit Dashboard** <br>_(Recommended)_ | `uv run --env-file .env streamlit run lc_app.py`   | Interactive frontend testing all 13 LangChain/LangGraph levels. | `Ctrl + C`   |
-| **FastAPI Backend**                         | `uv run --env-file .env uvicorn main:app --reload` | Production REST API server for external endpoints.              | `Ctrl + C`   |
+| Interface Type                              | Start Command                                      | Description                                                      | Stop Command |
+| :------------------------------------------ | :------------------------------------------------- | :--------------------------------------------------------------- | :----------- |
+| **Streamlit Dashboard** <br>_(Recommended)_ | `uv run --env-file .env streamlit run lc_app.py`   | Interactive frontend testing all 14 LangChain/LangGraph levels.  | `Ctrl + C`   |
+| **Level 14: MCP**                           | `uv run --env-file .env streamlit run lc_app.py`   | Standardized tool server integration via Model Context Protocol. | `Ctrl + C`   |
+| **FastAPI Backend**                         | `uv run --env-file .env uvicorn main:app --reload` | Production REST API server for external endpoints.               | `Ctrl + C`   |
 
 ## Pushing to GitHub
 

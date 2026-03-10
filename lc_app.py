@@ -17,6 +17,7 @@ from langchain_labs import lc_level10_production
 from langchain_labs import lc_level11_langsmith
 from langchain_labs import lc_level12_advanced
 from langchain_labs import lc_level13_timetravel
+from langchain_labs import lc_level14_mcp
 from langchain_labs import adk_level12_comparison as adk_level12_advanced
 
 load_dotenv()
@@ -44,7 +45,8 @@ level = st.sidebar.radio(
         "Level 11: Observability (LangSmith)",
         "Level 12: Advanced Streaming & Interrupts",
         "Level 12: ADK Native Comparison",
-        "Level 13: Time Travel & State Forking"
+        "Level 13: Time Travel & State Forking",
+        "Level 14: Model Context Protocol (MCP)"
     ]
 )
 
@@ -611,6 +613,24 @@ elif level == "Level 13: Time Travel & State Forking":
                          st.rerun()
                      else:
                          st.error(result.get("error", "Failed to fork."))
+
+elif level == "Level 14: Model Context Protocol (MCP)":
+    st.header("Level 14: Model Context Protocol (MCP)")
+    st.info("Concept: Using the Model Context Protocol to connect to external tool servers. LangChain uses `MCPToolkit` to discover tools via stdio or SSE.")
+    
+    st.markdown("### 🔌 MCP Pipeline:")
+    st.code("[LC Agent] --- toolkit.get_tools() ---> [MCP Server (SQLite)]", language="text")
+    
+    query = st.text_input("Ask about products (e.g., 'Do you have coffee mugs?')")
+    if st.button("Run Level 14 MCP Agent"):
+        with st.spinner("Connecting to MCP Server and running agent..."):
+            result = lc_level14_mcp.run_level(query)
+            if result["success"]:
+                st.success("Success!")
+                st.markdown("### Response:")
+                st.write(result["answer"])
+            else:
+                st.error(f"Error: {result['error']}")
 
 else:
     st.warning("This level is not yet implemented. Check the task tracker!")

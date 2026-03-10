@@ -96,7 +96,8 @@ We provide multiple interfaces for testing and running the ADK agents.
 | **Streamlit Dashboard** <br>_(Recommended)_ | `uv run --env-file .env streamlit run adk_app.py`      | Modern chat dashboard testing all 10+ ADK learning levels natively.   | `Ctrl + C`   |
 | **FastAPI Backend**                         | `uv run --env-file .env uvicorn main:app --reload`     | Production REST API server for the root agent.                        | `Ctrl + C`   |
 | **Native ADK UI** <br>_(Web Interface)_     | `uv run --env-file .env adk web adk_labs`              | Google's built-in React UI for testing basic agents.                  | `Ctrl + C`   |
-| **CLI Mode** <br>_(For HITL)_               | `uv run --env-file .env adk adk_labs/adk_level12_hitl` | Native terminal mode (required for `input()` commands like Level 12). | Type `exit`  |
+| **Level 11: MCP**                           | `uv run --env-file .env streamlit run adk_app.py`      | Model Context Protocol integration for dynamic tool discovery.        | `Ctrl + C`   |
+| **Level 12: HITL**                          | `uv run --env-file .env adk adk_labs/adk_level12_hitl` | Native terminal mode (required for `input()` commands like Level 12). | Type `exit`  |
 
 ## Pushing to GitHub
 

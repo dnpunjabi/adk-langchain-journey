@@ -13,6 +13,7 @@ from adk_streamlit_labs import level07_workflows
 from adk_streamlit_labs import level08_state
 from adk_streamlit_labs import level09_rag
 from adk_streamlit_labs import level10_production
+from adk_streamlit_labs import level11_mcp
 from adk_streamlit_labs import level12_hitl
 
 load_dotenv()
@@ -37,6 +38,7 @@ level = st.sidebar.radio(
         "Level 8: State & Memory",
         "Level 9: Retrieval Augmented Generation (RAG)",
         "Level 10: Full Production Agent",
+        "Level 11: Model Context Protocol (MCP)",
         "Level 12: Advanced Streaming & Interrupts"
     ]
 )
@@ -65,6 +67,8 @@ elif level == "Level 9: Retrieval Augmented Generation (RAG)":
     level09_rag.render()
 elif level == "Level 10: Full Production Agent":
     level10_production.render()
+elif level == "Level 11: Model Context Protocol (MCP)":
+    level11_mcp.render()
 elif level == "Level 12: Advanced Streaming & Interrupts":
     level12_hitl.render()
 else:
