@@ -7,10 +7,9 @@ from google.adk.sessions import InMemorySessionService
 from google.adk.runners import Runner
 from google.genai import types
 
-if "adk_basic_service_7" not in st.session_state:
-    st.session_state.adk_basic_service_7 = InMemorySessionService()
-
 def render():
+    if "adk_basic_service_7" not in st.session_state:
+        st.session_state.adk_basic_service_7 = InMemorySessionService()
     st.header("Level 7: Sequential Workflows (ADK Native)")
     st.info("Concept: ADK utilizes the `SequentialAgent` class to strictly pass the output of Agent A into Agent B as an enforced chronological pipeline.")
     

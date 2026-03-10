@@ -7,10 +7,9 @@ from google.adk.sessions import InMemorySessionService
 from google.adk.runners import Runner
 from google.genai import types
 
-if "adk_basic_service_4" not in st.session_state:
-    st.session_state.adk_basic_service_4 = InMemorySessionService()
-
 def render():
+    if "adk_basic_service_4" not in st.session_state:
+        st.session_state.adk_basic_service_4 = InMemorySessionService()
     st.header("Level 4: Guardrails (Input Validation)")
     st.info("Concept: Wrapping code in standard Python logic and exception handling, or using ADK's `before_tool_callback` to catch and block things before the LLM processes them.")
     

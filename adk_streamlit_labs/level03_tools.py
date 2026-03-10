@@ -7,10 +7,9 @@ from google.adk.sessions import InMemorySessionService
 from google.adk.runners import Runner
 from google.genai import types
 
-if "adk_basic_service_3" not in st.session_state:
-    st.session_state.adk_basic_service_3 = InMemorySessionService()
-
 def render():
+    if "adk_basic_service_3" not in st.session_state:
+        st.session_state.adk_basic_service_3 = InMemorySessionService()
     st.header("Level 3: Custom Tools")
     st.info("Concept: Providing Python functions to the `tools` array. ADK automatically executes them in a native loop!")
     

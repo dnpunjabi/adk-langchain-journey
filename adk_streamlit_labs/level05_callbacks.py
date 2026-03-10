@@ -8,10 +8,9 @@ from google.adk.sessions import InMemorySessionService
 from google.adk.runners import Runner
 from google.genai import types
 
-if "adk_basic_service_5" not in st.session_state:
-    st.session_state.adk_basic_service_5 = InMemorySessionService()
-
 def render():
+    if "adk_basic_service_5" not in st.session_state:
+        st.session_state.adk_basic_service_5 = InMemorySessionService()
     st.header("Level 5: Observability & Callbacks")
     st.info("Concept: Attaching native hook functions to `after_model_callback` and others to listen to the execution lifecycle.")
     

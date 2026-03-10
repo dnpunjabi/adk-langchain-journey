@@ -1,6 +1,9 @@
 import streamlit as st
 import os
 from dotenv import load_dotenv
+import nest_asyncio
+
+nest_asyncio.apply()
 
 # Import modular UI wrappers
 from adk_streamlit_labs import level01_basic

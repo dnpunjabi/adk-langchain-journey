@@ -7,10 +7,9 @@ from google.adk.sessions import InMemorySessionService
 from google.adk.runners import Runner
 from google.genai import types
 
-if "adk_prod_session_service" not in st.session_state:
-    st.session_state.adk_prod_session_service = InMemorySessionService()
-
 def render():
+    if "adk_prod_session_service" not in st.session_state:
+        st.session_state.adk_prod_session_service = InMemorySessionService()
     st.header("Level 10: Full Production Agent (ADK Native)")
     st.info("Concept: Combining system prompts, tools, guardrails, and memory into a single production-ready ADK `Agent`.")
     

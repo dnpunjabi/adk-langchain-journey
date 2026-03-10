@@ -6,3 +6,5 @@ fastapi
 uvicorn
 pydantic
 python-dotenv
+mcp
+nest_asyncio

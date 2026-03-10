@@ -6,3 +6,6 @@ langsmith
 streamlit
 python-dotenv
 pydantic
+mcp
+langchain-mcp
+nest_asyncio

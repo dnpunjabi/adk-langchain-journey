@@ -7,10 +7,9 @@ from google.adk.sessions import InMemorySessionService
 from google.adk.runners import Runner
 from google.genai import types
 
-if "adk_basic_service_2" not in st.session_state:
-    st.session_state.adk_basic_service_2 = InMemorySessionService()
-
 def render():
+    if "adk_basic_service_2" not in st.session_state:
+        st.session_state.adk_basic_service_2 = InMemorySessionService()
     st.header("Level 2: Prompt Engineering")
     st.info("Concept: Setting the `instruction` property on an ADK Agent as a Developer/System prompt.")
     

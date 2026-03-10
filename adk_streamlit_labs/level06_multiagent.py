@@ -7,10 +7,9 @@ from google.adk.sessions import InMemorySessionService
 from google.adk.runners import Runner
 from google.genai import types
 
-if "adk_basic_service_6" not in st.session_state:
-    st.session_state.adk_basic_service_6 = InMemorySessionService()
-
 def render():
+    if "adk_basic_service_6" not in st.session_state:
+        st.session_state.adk_basic_service_6 = InMemorySessionService()
     st.header("Level 6: Multi-Agent Trees (ADK Native)")
     st.info("Concept: The ADK uses hierarchical routing. A top-level 'Supervisor' agent is given an array of `sub_agents`. It automatically routes user intents to the leaf HR or Sales bots.")
     

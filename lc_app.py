@@ -1,6 +1,9 @@
 import streamlit as st
 import os
 from dotenv import load_dotenv
+import nest_asyncio
+
+nest_asyncio.apply()
 
 # Import the logic for the levels
 # We will refactor the existing scripts slightly to expose a run_level() function

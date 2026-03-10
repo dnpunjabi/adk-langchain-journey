@@ -8,10 +8,9 @@ from google.adk.runners import Runner
 from google.genai import types
 
 # Initialize the ADK Session Service in Streamlit's global state so memory persists across reruns
-if "adk_session_service" not in st.session_state:
-    st.session_state.adk_session_service = InMemorySessionService()
-
 def render():
+    if "adk_session_service" not in st.session_state:
+        st.session_state.adk_session_service = InMemorySessionService()
     st.header("Level 8: State & Memory (ADK Native)")
     st.info("Concept: ADK uses an `InMemorySessionService` to attach history and a state dictionary to a specific session ID, allowing data to persist across turns.")
     

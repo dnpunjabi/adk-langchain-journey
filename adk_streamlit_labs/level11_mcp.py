@@ -8,10 +8,9 @@ from google.adk.sessions import InMemorySessionService
 from google.adk.runners import Runner
 from google.genai import types
 
-if "adk_mcp_service" not in st.session_state:
-    st.session_state.adk_mcp_service = InMemorySessionService()
-
 def render():
+    if "adk_mcp_service" not in st.session_state:
+        st.session_state.adk_mcp_service = InMemorySessionService()
     st.header("Level 11: Model Context Protocol (MCP)")
     st.info("Concept: Using MCP to connect to a standardized tool server. The agent 'discovers' and calls tools from an external process!")
     

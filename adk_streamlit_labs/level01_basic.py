@@ -7,10 +7,9 @@ from google.adk.sessions import InMemorySessionService
 from google.adk.runners import Runner
 from google.genai import types
 
-if "adk_basic_service" not in st.session_state:
-    st.session_state.adk_basic_service = InMemorySessionService()
-
 def render():
+    if "adk_basic_service" not in st.session_state:
+        st.session_state.adk_basic_service = InMemorySessionService()
     st.header("Level 1: Single Agent Basics")
     st.info("Concept: Connecting to Gemini using ADK `Agent` and a Session runner.")
     

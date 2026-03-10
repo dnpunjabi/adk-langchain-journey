@@ -7,10 +7,9 @@ from google.adk.sessions import InMemorySessionService
 from google.adk.runners import Runner
 from google.genai import types
 
-if "adk_rag_session_service" not in st.session_state:
-    st.session_state.adk_rag_session_service = InMemorySessionService()
-
 def render():
+    if "adk_rag_session_service" not in st.session_state:
+        st.session_state.adk_rag_session_service = InMemorySessionService()
     st.header("Level 9: Retrieval Augmented Generation (RAG)")
     st.info("Concept: Using ADK to ground an LLM with external information. This level combines a simulated Local Knowledge Base (`COMPANY_KNOWLEDGE`) with the live built-in `GoogleSearchAgentTool`.")
     
