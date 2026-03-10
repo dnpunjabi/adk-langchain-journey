@@ -43,7 +43,9 @@ def search_products(query: str) -> str:
     """
     conn = sqlite3.connect("products.db")
     cursor = conn.cursor()
-    search_term = f"%{query}%"
+    # Normalize query: lowercase and remove trailing 's' for simple plural handling
+    clean_query = query.lower().rstrip('s')
+    search_term = f"%{clean_query}%"
     cursor.execute("SELECT name, category, price, stock FROM products WHERE name LIKE ? OR category LIKE ?", (search_term, search_term))
     results = cursor.fetchall()
     conn.close()

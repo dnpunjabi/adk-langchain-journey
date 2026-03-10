@@ -32,14 +32,21 @@ def search_products_mcp(query: str) -> str:
     Args:
         query: The search term for products.
     """
-    # Since ADK tools in this version are blocking, we run the async client in a loop
+    print(f"DEBUG: ADK Level 11 calling MCP with query: {query}")
     try:
+        # Use the existing loop if available (nest_asyncio allows this)
         loop = asyncio.get_event_loop()
-    except RuntimeError:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        
-    return loop.run_until_complete(call_mcp_tool("search_products", {"query": query}))
+        if loop.is_running():
+            import nest_asyncio
+            nest_asyncio.apply()
+            result = loop.run_until_complete(call_mcp_tool("search_products", {"query": query}))
+        else:
+            result = asyncio.run(call_mcp_tool("search_products", {"query": query}))
+        print(f"DEBUG: MCP Result: {result}")
+        return result
+    except Exception as e:
+        print(f"DEBUG: MCP Error: {e}")
+        return f"Error connecting to product server: {e}"
 
 root_agent = Agent(
     name="adk_level11_mcp",
@@ -48,6 +55,7 @@ root_agent = Agent(
     instruction=(
         "You are an Acme Store Assistant with access to a live Product Server via MCP.\n"
         "- Use the search_products_mcp tool to find product availability, price, and category.\n"
+        "- **Tip**: Use singular keywords (e.g., 'laptop' instead of 'laptops') for better search results.\n"
         "- If a user asks about what we sell or specific prices, always search the MCP server first.\n"
         "- Be professional and helpful."
     ),
