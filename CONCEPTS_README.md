@@ -18,9 +18,10 @@ Welcome to the master reference guide for our 13-Level Agentic AI Learning Track
 | **08** | **State & Memory**        | Stateful memory lists          | `MemorySaver` Checkpointer           |
 | **09** | **RAG / Grounding**       | Google Search Tool integration | `InMemoryVectorStore`                |
 | **10** | **Production Patterns**   | Full combined agent            | `create_react_agent`                 |
-| **11** | **Observability**         | External log hooks             | LangSmith built-in tracing           |
+| **11** | **MCP Integration**       | FastMCP Tool Discovery         | `MCPToolkit` & `StdioServer`         |
 | **12** | **Streaming & HITL**      | Generators & `input()` hooks   | `interrupt_before=["tools"]`         |
 | **13** | **Time Travel (Forking)** | _Not natively supported_       | `get_state_history` & `update_state` |
+| **14** | **MCP (LangChain)**       | _(Shared with Level 11)_       | `MCPToolkit` Integration             |
 
 ---
 
@@ -475,6 +476,51 @@ app.invoke(None, config=checkpoint_3_config) # Runs altered timeline
 ```
 
 _Note: The lightweight Google ADK does not natively support complex time travel, focusing instead on straight-line execution for low latency._
+
+---
+
+## Level 14: Model Context Protocol (MCP)
+
+**The Goal:** Standardize how agents connect to external tool servers. Instead of hardcoding tools into the agent, the agent "connects" to an MCP server and dynamically discovers what it can do.
+
+```mermaid
+sequenceDiagram
+    participant Agent
+    participant Client as MCP Client
+    participant Server as FastMCP Server
+    participant DB as SQLite / API
+
+    Agent->>Client: Initialize Session
+    Client->>Server: list_tools()
+    Server-->>Client: ["search_products", "get_stock"]
+    Agent->>Client: call_tool("search_products", {q: "laptop"})
+    Client->>Server: Execute Tool
+    Server->>DB: Query Database
+    DB-->>Server: Results
+    Server-->>Agent: JSON Tool Results
+```
+
+### Google ADK (Level 11)
+
+ADK uses a custom bridge to talk to the MCP server via `stdio`. This demonstrates how lightweight frameworks can adopt global standards.
+
+```python
+async def call_mcp_tool(tool_name, arguments):
+    # stdio_client launches 'uv run mcp_server.py'
+    async with stdio_client(server_params) as (read, write):
+        async with ClientSession(read, write) as session:
+            return await session.call_tool(tool_name, arguments)
+```
+
+### LangChain (Level 14)
+
+LangChain provides a native `MCPToolkit` that automatically converts MCP server tool definitions into LangChain `BaseTool` objects.
+
+```python
+from langchain_mcp import MCPToolkit
+toolkit = await MCPToolkit.from_stdio(server_params)
+agent = create_react_agent(llm, toolkit.get_tools())
+```
 
 ---
 
