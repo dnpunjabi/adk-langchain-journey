@@ -8,7 +8,12 @@ mcp = FastMCP("Acme Product Server")
 
 # Initialize a simple SQLite database in memory for demonstration
 def init_db():
-    conn = sqlite3.connect("products.db")
+    db_path = "products.db"
+    # To ensure consistent testing, we overwrite the DB if it's potentially stale
+    if os.path.exists(db_path):
+        os.remove(db_path)
+        
+    conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS products (
@@ -20,18 +25,15 @@ def init_db():
         )
     ''')
     
-    # Insert some dummy data if empty
-    cursor.execute("SELECT COUNT(*) FROM products")
-    if cursor.fetchone()[0] == 0:
-        products = [
-            ("Quantum Laptop", "Electronics", 120000.0, 15),
-            ("Neural Headphones", "Audio", 15000.0, 50),
-            ("Smart Coffee Mug", "Lifestyle", 2500.0, 100),
-            ("Ergo Desk Lamp", "Office", 4500.0, 30),
-            ("Wireless Mech Keyboard", "Electronics", 8500.0, 25)
-        ]
-        cursor.executemany("INSERT INTO products (name, category, price, stock) VALUES (?, ?, ?, ?)", products)
-        conn.commit()
+    products = [
+        ("Quantum Laptop", "Electronics", 120000.0, 15),
+        ("Neural Headphones", "Audio", 15000.0, 50),
+        ("Smart Coffee Mug", "Lifestyle", 2500.0, 100),
+        ("Ergo Desk Lamp", "Office", 4500.0, 30),
+        ("Wireless Mech Keyboard", "Electronics", 8500.0, 25)
+    ]
+    cursor.executemany("INSERT INTO products (name, category, price, stock) VALUES (?, ?, ?, ?)", products)
+    conn.commit()
     return conn
 
 @mcp.tool()
@@ -45,8 +47,9 @@ def search_products(query: str) -> str:
     cursor = conn.cursor()
     # Normalize query: lowercase and remove trailing 's' for simple plural handling
     clean_query = query.lower().rstrip('s')
+    # Use wildcards on both sides for even more flexibility
     search_term = f"%{clean_query}%"
-    cursor.execute("SELECT name, category, price, stock FROM products WHERE name LIKE ? OR category LIKE ?", (search_term, search_term))
+    cursor.execute("SELECT name, category, price, stock FROM products WHERE LOWER(name) LIKE ? OR LOWER(category) LIKE ?", (search_term, search_term))
     results = cursor.fetchall()
     conn.close()
     
